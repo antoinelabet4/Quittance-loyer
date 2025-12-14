@@ -1,26 +1,8 @@
 import { NextResponse } from 'next/server';
-
-function initializeDefaultUser() {
-  if (typeof window === 'undefined') {
-    if (!global.usersStore) {
-      global.usersStore = {};
-    }
-    
-    if (!global.usersStore['antoinelabet@gmail.com']) {
-      global.usersStore['antoinelabet@gmail.com'] = {
-        id: 'user_antoine_labet',
-        email: 'antoinelabet@gmail.com',
-        password: 'password123',
-        nom: 'Labet Conseil',
-      };
-    }
-  }
-}
+import { supabase } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
-    initializeDefaultUser();
-    
     const { email, password, nom } = await request.json();
 
     if (!email || !password || !nom) {
@@ -30,23 +12,29 @@ export async function POST(request: Request) {
       );
     }
 
-    const usersData = typeof window === 'undefined' 
-      ? global.usersStore || (global.usersStore = {})
-      : {};
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          nom,
+        },
+      },
+    });
 
-    if (usersData[email]) {
+    if (error) {
       return NextResponse.json(
-        { error: 'Cet email est déjà utilisé' },
+        { error: error.message === 'User already registered' ? 'Cet email est déjà utilisé' : error.message },
         { status: 400 }
       );
     }
 
-    const userId = `user_${Date.now()}`;
-    const user = { id: userId, email, password, nom };
-    usersData[email] = user;
-
     return NextResponse.json({
-      user: { id: user.id, email: user.email, nom: user.nom },
+      user: { 
+        id: data.user!.id, 
+        email: data.user!.email!, 
+        nom 
+      },
     });
   } catch (error) {
     console.error('Signup error:', error);
@@ -55,8 +43,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}
-
-declare global {
-  var usersStore: Record<string, { id: string; email: string; password: string; nom: string }>;
 }
