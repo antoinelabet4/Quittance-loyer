@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
 
-const users = new Map<string, { id: string; email: string; password: string; nom: string }>();
-
 export async function POST(request: Request) {
   try {
     const { email, password } = await request.json();
@@ -13,7 +11,11 @@ export async function POST(request: Request) {
       );
     }
 
-    const user = users.get(email);
+    const usersData = typeof window === 'undefined' 
+      ? global.usersStore || (global.usersStore = {})
+      : {};
+
+    const user = usersData[email];
 
     if (!user || user.password !== password) {
       return NextResponse.json(
@@ -32,4 +34,8 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+}
+
+declare global {
+  var usersStore: Record<string, { id: string; email: string; password: string; nom: string }>;
 }
