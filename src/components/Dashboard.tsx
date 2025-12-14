@@ -136,12 +136,16 @@ export function Dashboard() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-white rounded flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-[#000091]" />
+                <div className="w-10 h-10 bg-white rounded flex items-center justify-center overflow-hidden">
+                  <img 
+                    src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/Icone-de-document-avec-maison-1765698769698.png?width=8000&height=8000&resize=contain" 
+                    alt="Logo" 
+                    className="w-full h-full object-contain"
+                  />
                 </div>
                 <div>
                   <h1 className="text-xl font-bold">Quittances de Loyer</h1>
-                  <p className="text-xs text-blue-200">Générateur officiel</p>
+                  <p className="text-xs text-blue-200">Générateur de quittance gratuit</p>
                 </div>
               </div>
             </div>
