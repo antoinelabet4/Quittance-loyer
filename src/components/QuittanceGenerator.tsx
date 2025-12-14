@@ -122,7 +122,6 @@ export function QuittanceGenerator({
       return;
     }
 
-    const defaultFrom = selectedBailleur.email || 'onboarding@resend.dev';
     const defaultTo = selectedLocataire.email || '';
     const defaultBody = `Bonjour ${selectedLocataire.nom},
 
@@ -136,7 +135,7 @@ Total payé : ${quittancePreview.total.toFixed(2)} €
 Cordialement,
 ${selectedBailleur.nom}`;
 
-    setEmailFrom(defaultFrom);
+    setEmailFrom('onboarding@resend.dev');
     setEmailTo(defaultTo);
     setEmailBody(defaultBody);
     setShowEmailComposer(true);
