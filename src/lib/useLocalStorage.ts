@@ -28,7 +28,7 @@ export function useLocalStorage() {
   const [data, setData] = useState<AppData>(defaultData);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  useEffect(() => {
+  const loadData = useCallback(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     const userStored = localStorage.getItem('user');
     let parsedData = defaultData;
@@ -69,6 +69,22 @@ export function useLocalStorage() {
     setData(parsedData);
     setIsLoaded(true);
   }, []);
+
+  useEffect(() => {
+    loadData();
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY) {
+        loadData();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [loadData]);
 
   useEffect(() => {
     if (isLoaded) {
