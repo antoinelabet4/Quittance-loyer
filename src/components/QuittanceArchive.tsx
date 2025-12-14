@@ -68,9 +68,13 @@ export function QuittanceArchive({
       return;
     }
     
+    const moisFormate = String(quittance.mois).padStart(2, '0');
+    const anneeFormate = String(quittance.annee).slice(-2);
+    const locataireNom = locataire.nom.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
+    
     const opt = {
       margin: 10,
-      filename: `quittance_${quittance.numero}_${MOIS[quittance.mois]}_${quittance.annee}.pdf`,
+      filename: `quittance_${locataireNom}_${moisFormate}_${anneeFormate}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
