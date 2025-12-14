@@ -153,7 +153,7 @@ export function AppartementForm({ appartement, bailleurs, locataires, onSave, on
       </div>
 
       <div className="space-y-2">
-        <Label>Locataires</Label>
+        <Label>Locataires (optionnel)</Label>
         <div className="flex gap-2">
           <Select value={selectedLocataireId} onValueChange={setSelectedLocataireId}>
             <SelectTrigger className="flex-1">
@@ -200,6 +200,7 @@ export function AppartementForm({ appartement, bailleurs, locataires, onSave, on
           id="colocation" 
           checked={form.isColocation}
           onCheckedChange={handleColocationChange}
+          disabled={form.locataireIds.length === 0}
         />
         <Label htmlFor="colocation" className="cursor-pointer">
           Colocation (loyer par locataire)
@@ -282,7 +283,7 @@ export function AppartementForm({ appartement, bailleurs, locataires, onSave, on
       </div>
 
       <div className="flex gap-3 pt-4">
-        <Button type="submit" className="flex-1" disabled={!form.bailleurId || form.locataireIds.length === 0}>
+        <Button type="submit" className="flex-1" disabled={!form.bailleurId}>
           {appartement ? 'Modifier' : 'Ajouter'}
         </Button>
         <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
