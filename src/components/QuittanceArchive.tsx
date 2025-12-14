@@ -8,7 +8,6 @@ import { QuittancePreview } from './QuittancePreview';
 import type { Quittance, Appartement, Bailleur, Locataire } from '@/lib/types';
 import { MOIS, formatMoney } from '@/lib/types';
 import { FileText, Trash2, Eye, Calendar, Home, Download } from 'lucide-react';
-import html2pdf from 'html2pdf.js';
 
 interface QuittanceArchiveProps {
   quittances: Quittance[];
