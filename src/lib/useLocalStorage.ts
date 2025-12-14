@@ -45,51 +45,133 @@ export function useLocalStorage() {
       try {
         const user = JSON.parse(userStored);
         if (user.email === 'antoinelabet@gmail.com' && parsedData.bailleurs.length === 0 && !parsedData.initializedForUser) {
-          const bailleurId = generateId();
-          const locataire1Id = generateId();
-          const locataire2Id = generateId();
-          const appartementId = generateId();
+          const bailleurLabetConseilId = generateId();
+          const bailleurAntoineLabetId = generateId();
+          
+          const locataireAnneId = generateId();
+          const locataireMarionId = generateId();
+          const locataireMatignonId = generateId();
+          const locataireOlivierId = generateId();
+          const locataireAmbreId = generateId();
+          
+          const apptTrappesId = generateId();
+          const apptMontreuilId = generateId();
           
           parsedData = {
             ...parsedData,
-            bailleurs: [{
-              id: bailleurId,
-              nom: 'Labet Conseil',
-              adresse: '60, rue Jean Jaurès, 78190, Trappes',
-              type: 'societe',
-              siret: '12345678900012',
-              email: 'antoinelabet@gmail.com',
-              telephone: '0601020304',
-            }],
+            bailleurs: [
+              {
+                id: bailleurLabetConseilId,
+                nom: 'Labet Conseil',
+                adresse: '60, rue Jean Jaurès, 78190, Trappes',
+                type: 'societe',
+                siret: '12345678900012',
+                email: 'contact@labetconseil.fr',
+                telephone: '0601020304',
+              },
+              {
+                id: bailleurAntoineLabetId,
+                nom: 'Antoine Labet',
+                adresse: '24, rue des Clos Français, 93100, Montreuil',
+                type: 'particulier',
+                email: 'antoinelabet@gmail.com',
+                telephone: '0601020304',
+              }
+            ],
             locataires: [
               {
-                id: locataire1Id,
-                nom: 'Martin Dupont',
-                adresse: '15, Avenue de la République, 78190, Trappes',
-                email: 'martin.dupont@email.com',
+                id: locataireAnneId,
+                nom: 'Donnadieu Anne Lise',
+                adresse: '60, rue Jean Jaurès, 78190, Trappes',
+                email: 'anne.donnadieu@email.com',
                 telephone: '0612345678',
               },
               {
-                id: locataire2Id,
-                nom: 'Sophie Bernard',
-                adresse: '22, Rue des Fleurs, 78190, Trappes',
-                email: 'sophie.bernard@email.com',
+                id: locataireMarionId,
+                nom: 'Durieux Marion',
+                adresse: '60, rue Jean Jaurès, 78190, Trappes',
+                email: 'marion.durieux@email.com',
                 telephone: '0698765432',
+              },
+              {
+                id: locataireMatignonId,
+                nom: 'Matignon Ulysse',
+                adresse: '24, rue des Clos Français, 93100, Montreuil',
+                email: 'ulysse.matignon@email.com',
+                telephone: '0687654321',
+              },
+              {
+                id: locataireOlivierId,
+                nom: 'Grave Olivier',
+                adresse: '24, rue des Clos Français, 93100, Montreuil',
+                email: 'olivier.grave@email.com',
+                telephone: '0676543210',
+              },
+              {
+                id: locataireAmbreId,
+                nom: 'Pigeault Ambre',
+                adresse: '24, rue des Clos Français, 93100, Montreuil',
+                email: 'ambre.pigeault@email.com',
+                telephone: '0665432109',
               }
             ],
             appartements: [
               {
-                id: appartementId,
-                adresse: '15, Avenue de la République, Appartement 3B, 78190, Trappes',
-                bailleurId: bailleurId,
-                locataireIds: [locataire1Id],
-                isColocation: false,
-                loyer: 850,
-                charges: 100,
+                id: apptTrappesId,
+                adresse: '60, rue Jean Jaurès, 78190, Trappes',
+                bailleurId: bailleurLabetConseilId,
+                locataireIds: [locataireAnneId, locataireMarionId],
+                isColocation: true,
+                loyer: 1110,
+                charges: 190,
                 dateEntree: '2024-01-01',
+              },
+              {
+                id: apptMontreuilId,
+                adresse: '24, rue des Clos Français, 93100, Montreuil',
+                bailleurId: bailleurAntoineLabetId,
+                locataireIds: [locataireMatignonId, locataireOlivierId, locataireAmbreId],
+                isColocation: true,
+                loyer: 1608,
+                charges: 267,
+                dateEntree: '2024-06-01',
               }
             ],
-            activeBailleurId: bailleurId,
+            quittances: [
+              {
+                id: generateId(),
+                numero: 1,
+                appartementId: apptTrappesId,
+                locataireId: locataireMarionId,
+                bailleurId: bailleurLabetConseilId,
+                mois: 'Novembre',
+                annee: 2025,
+                montantLoyer: 650,
+                montantCharges: 0,
+                dateCreation: new Date('2025-11-14').toISOString(),
+                lieuEmission: 'Paris',
+                modePaiement: 'Virement bancaire',
+                datePaiement: '14/11/2025',
+                archived: true,
+              },
+              {
+                id: generateId(),
+                numero: 2,
+                appartementId: apptTrappesId,
+                locataireId: locataireMarionId,
+                bailleurId: bailleurLabetConseilId,
+                mois: 'Décembre',
+                annee: 2025,
+                montantLoyer: 650,
+                montantCharges: 0,
+                dateCreation: new Date('2025-12-14').toISOString(),
+                lieuEmission: 'Paris',
+                modePaiement: 'Virement bancaire',
+                datePaiement: '14/12/2025',
+                archived: true,
+              }
+            ],
+            activeBailleurId: bailleurLabetConseilId,
             initializedForUser: user.email,
           };
         }
