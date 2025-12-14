@@ -9,7 +9,7 @@ import { QuittancePreview } from './QuittancePreview';
 import { AppartementForm } from './AppartementForm';
 import type { Quittance, Appartement, Bailleur, Locataire, ModePaiement } from '@/lib/types';
 import { MOIS, generateId } from '@/lib/types';
-import { FileText, Download, Save, Plus } from 'lucide-react';
+import { FileText, Download, Save, Plus, Mail, MessageSquare } from 'lucide-react';
 
 interface QuittanceGeneratorProps {
   appartements: Appartement[];
@@ -42,6 +42,8 @@ export function QuittanceGenerator({
   const [modePaiement, setModePaiement] = useState<ModePaiement>('virement');
   const [showPreview, setShowPreview] = useState(false);
   const [showCreateAppartement, setShowCreateAppartement] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [sendingSMS, setSendingSMS] = useState(false);
 
   const selectedAppartement = useMemo(() => 
     appartements.find(a => a.id === selectedAppartementId),
@@ -117,6 +119,74 @@ export function QuittanceGenerator({
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleSendEmail = async () => {
+    if (!selectedLocataire?.email || !quittancePreview || !selectedBailleur) {
+      alert('Le locataire doit avoir une adresse email');
+      return;
+    }
+    
+    setSendingEmail(true);
+    try {
+      const response = await fetch('/api/send-quittance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'email',
+          to: selectedLocataire.email,
+          quittance: quittancePreview,
+          bailleur: selectedBailleur,
+          locataire: selectedLocataire,
+          appartement: selectedAppartement,
+        }),
+      });
+      
+      if (response.ok) {
+        alert('Quittance envoyée par email avec succès !');
+      } else {
+        throw new Error('Erreur lors de l\'envoi');
+      }
+    } catch (error) {
+      alert('Erreur lors de l\'envoi de l\'email');
+      console.error(error);
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
+  const handleSendSMS = async () => {
+    if (!selectedLocataire?.telephone || !quittancePreview || !selectedBailleur) {
+      alert('Le locataire doit avoir un numéro de téléphone');
+      return;
+    }
+    
+    setSendingSMS(true);
+    try {
+      const response = await fetch('/api/send-quittance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'sms',
+          to: selectedLocataire.telephone,
+          quittance: quittancePreview,
+          bailleur: selectedBailleur,
+          locataire: selectedLocataire,
+          appartement: selectedAppartement,
+        }),
+      });
+      
+      if (response.ok) {
+        alert('Notification SMS envoyée avec succès !');
+      } else {
+        throw new Error('Erreur lors de l\'envoi');
+      }
+    } catch (error) {
+      alert('Erreur lors de l\'envoi du SMS');
+      console.error(error);
+    } finally {
+      setSendingSMS(false);
+    }
   };
 
   const handleCreateAppartement = (appartement: Appartement) => {
@@ -301,7 +371,7 @@ export function QuittanceGenerator({
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="flex gap-4 print:hidden">
+          <div className="flex gap-4 print:hidden flex-wrap">
             <Button onClick={() => setShowPreview(false)} variant="outline">
               Retour
             </Button>
@@ -313,6 +383,26 @@ export function QuittanceGenerator({
               <Download className="w-4 h-4 mr-2" />
               Imprimer / PDF
             </Button>
+            {selectedLocataire?.email && (
+              <Button 
+                onClick={handleSendEmail} 
+                variant="outline"
+                disabled={sendingEmail}
+              >
+                <Mail className="w-4 h-4 mr-2" />
+                {sendingEmail ? 'Envoi...' : 'Envoyer par email'}
+              </Button>
+            )}
+            {selectedLocataire?.telephone && (
+              <Button 
+                onClick={handleSendSMS} 
+                variant="outline"
+                disabled={sendingSMS}
+              >
+                <MessageSquare className="w-4 h-4 mr-2" />
+                {sendingSMS ? 'Envoi...' : 'Envoyer par SMS'}
+              </Button>
+            )}
           </div>
 
           {quittancePreview && selectedBailleur && selectedLocataire && selectedAppartement && (
