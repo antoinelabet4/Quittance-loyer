@@ -119,7 +119,14 @@ export function QuittanceGenerator({
   };
 
   const confirmSendEmail = async () => {
+    console.log('🟢 [FRONT] confirmSendEmail appelée');
+    console.log('🟢 [FRONT] emailRecipient:', emailRecipient);
+    console.log('🟢 [FRONT] quittancePreview:', quittancePreview);
+    console.log('🟢 [FRONT] selectedBailleur:', selectedBailleur);
+    console.log('🟢 [FRONT] selectedLocataire:', selectedLocataire);
+    
     if (!emailRecipient || !quittancePreview || !selectedBailleur || !selectedLocataire) {
+      console.error('❌ [FRONT] Données manquantes:', { emailRecipient, quittancePreview: !!quittancePreview, bailleur: !!selectedBailleur, locataire: !!selectedLocataire });
       alert('Veuillez sélectionner un destinataire');
       return;
     }
@@ -127,39 +134,59 @@ export function QuittanceGenerator({
     const recipient = emailRecipient === 'bailleur' ? selectedBailleur : selectedLocataire;
     const recipientEmail = recipient.email;
 
+    console.log('🟢 [FRONT] Recipient:', recipient.nom);
+    console.log('🟢 [FRONT] Recipient email:', recipientEmail);
+
     if (!recipientEmail) {
+      console.error('❌ [FRONT] Email manquant pour', emailRecipient);
       alert(`${emailRecipient === 'bailleur' ? 'Le bailleur' : 'Le locataire'} n'a pas d'adresse email`);
       return;
     }
     
     setSendingEmail(true);
     setShowEmailDialog(false);
+    
+    console.log('🟢 [FRONT] Préparation payload...');
+    const payload = {
+      type: 'email',
+      to: recipientEmail,
+      recipient: emailRecipient,
+      quittance: quittancePreview,
+      bailleur: selectedBailleur,
+      locataire: selectedLocataire,
+      appartement: selectedAppartement,
+    };
+    console.log('🟢 [FRONT] Payload:', JSON.stringify(payload, null, 2));
+    
     try {
+      console.log('🟢 [FRONT] Envoi requête à /api/send-quittance...');
       const response = await fetch('/api/send-quittance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'email',
-          to: recipientEmail,
-          recipient: emailRecipient,
-          quittance: quittancePreview,
-          bailleur: selectedBailleur,
-          locataire: selectedLocataire,
-          appartement: selectedAppartement,
-        }),
+        body: JSON.stringify(payload),
       });
       
+      console.log('🟢 [FRONT] Response status:', response.status);
+      console.log('🟢 [FRONT] Response ok:', response.ok);
+      
+      const data = await response.json();
+      console.log('🟢 [FRONT] Response data:', data);
+      
       if (response.ok) {
+        console.log('✅ [FRONT] Email envoyé avec succès');
         alert(`Quittance envoyée à ${emailRecipient === 'bailleur' ? selectedBailleur.nom : selectedLocataire.nom} (${recipientEmail}) avec succès !`);
       } else {
-        throw new Error('Erreur lors de l\'envoi');
+        console.error('❌ [FRONT] Erreur réponse:', data);
+        throw new Error(data.error || 'Erreur lors de l\'envoi');
       }
     } catch (error) {
+      console.error('❌ [FRONT] Exception:', error);
+      console.error('❌ [FRONT] Error stack:', error instanceof Error ? error.stack : 'No stack');
       alert('Erreur lors de l\'envoi de l\'email');
-      console.error(error);
     } finally {
       setSendingEmail(false);
       setEmailRecipient('');
+      console.log('🟢 [FRONT] Fin de confirmSendEmail');
     }
   };
 
@@ -175,36 +202,52 @@ export function QuittanceGenerator({
   };
 
   const handleSendSMS = async () => {
+    console.log('🟢 [FRONT] handleSendSMS appelée');
+    console.log('🟢 [FRONT] selectedLocataire:', selectedLocataire);
+    console.log('🟢 [FRONT] telephone:', selectedLocataire?.telephone);
+    
     if (!selectedLocataire?.telephone || !quittancePreview || !selectedBailleur) {
+      console.error('❌ [FRONT] Données manquantes pour SMS');
       alert('Le locataire doit avoir un numéro de téléphone');
       return;
     }
     
     setSendingSMS(true);
+    
+    const payload = {
+      type: 'sms',
+      to: selectedLocataire.telephone,
+      quittance: quittancePreview,
+      bailleur: selectedBailleur,
+      locataire: selectedLocataire,
+      appartement: selectedAppartement,
+    };
+    console.log('🟢 [FRONT] SMS Payload:', JSON.stringify(payload, null, 2));
+    
     try {
+      console.log('🟢 [FRONT] Envoi SMS...');
       const response = await fetch('/api/send-quittance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'sms',
-          to: selectedLocataire.telephone,
-          quittance: quittancePreview,
-          bailleur: selectedBailleur,
-          locataire: selectedLocataire,
-          appartement: selectedAppartement,
-        }),
+        body: JSON.stringify(payload),
       });
       
+      console.log('🟢 [FRONT] SMS Response status:', response.status);
+      const data = await response.json();
+      console.log('🟢 [FRONT] SMS Response data:', data);
+      
       if (response.ok) {
+        console.log('✅ [FRONT] SMS envoyé');
         alert('Notification SMS envoyée avec succès !');
       } else {
         throw new Error('Erreur lors de l\'envoi');
       }
     } catch (error) {
+      console.error('❌ [FRONT] SMS Exception:', error);
       alert('Erreur lors de l\'envoi du SMS');
-      console.error(error);
     } finally {
       setSendingSMS(false);
+      console.log('🟢 [FRONT] Fin handleSendSMS');
     }
   };
 
