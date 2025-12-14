@@ -6,6 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useLocalStorage } from '@/lib/useLocalStorage';
 import { useAuth } from '@/contexts/AuthContext';
 import { BailleurForm } from './BailleurForm';
@@ -24,11 +32,15 @@ import {
   FileText, 
   Archive,
   User,
-  LogOut
+  LogOut,
+  Settings,
+  Shield
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export function Dashboard() {
   const { user, logout } = useAuth();
+  const router = useRouter();
 
   const {
     isLoaded,
@@ -136,19 +148,6 @@ export function Dashboard() {
             
             {bailleurs.length > 0 && (
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <User className="w-4 h-4" />
-                  <span>{user?.email}</span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={logout}
-                  className="text-white hover:bg-white/10"
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Déconnexion
-                </Button>
                 <Select value={activeBailleurId || ''} onValueChange={setActiveBailleur}>
                   <SelectTrigger className="w-[200px] bg-white/10 border-white/20 text-white">
                     <SelectValue placeholder="Sélectionner un bailleur" />
@@ -161,6 +160,46 @@ export function Dashboard() {
                     ))}
                   </SelectContent>
                 </Select>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
+                      <User className="w-4 h-4 mr-2" />
+                      Profil
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium">Mon compte</p>
+                        <p className="text-xs text-muted-foreground">{user?.email}</p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>
+                      <User className="w-4 h-4 mr-2" />
+                      Mon profil
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Settings className="w-4 h-4 mr-2" />
+                      Paramètres
+                    </DropdownMenuItem>
+                    {user?.email === 'antoinelabet@gmail.com' && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => router.push('/admin')}>
+                          <Shield className="w-4 h-4 mr-2" />
+                          Administration
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={logout} variant="destructive">
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Déconnexion
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             )}
           </div>
