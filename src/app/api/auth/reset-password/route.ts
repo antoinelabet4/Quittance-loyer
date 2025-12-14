@@ -3,31 +3,20 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
-    const { email, newPassword } = await request.json();
+    const { email } = await request.json();
 
-    if (!email || !newPassword) {
+    if (!email) {
       return NextResponse.json(
-        { error: 'Email et nouveau mot de passe requis' },
+        { error: 'Email requis' },
         { status: 400 }
       );
     }
 
     const supabaseAdmin = getSupabaseAdmin();
     
-    const { data: users } = await supabaseAdmin.auth.admin.listUsers();
-    const user = users.users.find(u => u.email === email);
-    
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Utilisateur non trouvé' },
-        { status: 404 }
-      );
-    }
-
-    const { error } = await supabaseAdmin.auth.admin.updateUserById(
-      user.id,
-      { password: newPassword }
-    );
+    const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/reset-password`,
+    });
 
     if (error) {
       return NextResponse.json(
