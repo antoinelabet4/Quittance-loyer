@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,27 +10,31 @@ import type { Bailleur } from '@/lib/types';
 import { generateId } from '@/lib/types';
 
 interface BailleurFormProps {
-  bailleur?: Bailleur | null;
+  bailleur: Bailleur | null;
   onSave: (bailleur: Bailleur) => void;
   onCancel: () => void;
 }
 
 export function BailleurForm({ bailleur, onSave, onCancel }: BailleurFormProps) {
-  const [form, setForm] = useState<Omit<Bailleur, 'id'>>({
-    nom: bailleur?.nom || '',
-    adresse: bailleur?.adresse || '',
-    type: bailleur?.type || 'personne_physique',
-    siret: bailleur?.siret || '',
-    email: bailleur?.email || '',
-    telephone: bailleur?.telephone || '',
-    userId: bailleur?.userId || '',
-  });
+  const { user } = useAuth();
+  const [nom, setNom] = useState(bailleur?.nom || '');
+  const [adresse, setAdresse] = useState(bailleur?.adresse || '');
+  const [type, setType] = useState<'personne_physique' | 'societe'>(bailleur?.type || 'personne_physique');
+  const [siret, setSiret] = useState(bailleur?.siret || '');
+  const [email, setEmail] = useState(bailleur?.email || user?.email || '');
+  const [telephone, setTelephone] = useState(bailleur?.telephone || '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave({
       id: bailleur?.id || generateId(),
-      ...form,
+      nom,
+      adresse,
+      type,
+      siret: type === 'societe' ? siret : undefined,
+      email,
+      telephone,
+      userId: user?.id,
     });
   };
 
@@ -37,7 +42,7 @@ export function BailleurForm({ bailleur, onSave, onCancel }: BailleurFormProps) 
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="type">Type de bailleur</Label>
-        <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as 'personne_physique' | 'societe' })}>
+        <Select value={type} onValueChange={(v) => setType(v as 'personne_physique' | 'societe')}>
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
@@ -49,32 +54,32 @@ export function BailleurForm({ bailleur, onSave, onCancel }: BailleurFormProps) 
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="nom">{form.type === 'societe' ? 'Dénomination sociale' : 'Nom et prénom'}</Label>
+        <Label htmlFor="nom">{type === 'societe' ? 'Dénomination sociale' : 'Nom et prénom'}</Label>
         <Input
           id="nom"
-          value={form.nom}
-          onChange={(e) => setForm({ ...form, nom: e.target.value })}
+          value={nom}
+          onChange={(e) => setNom(e.target.value)}
           required
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="adresse">{form.type === 'societe' ? 'Siège social' : 'Adresse du domicile'}</Label>
+        <Label htmlFor="adresse">{type === 'societe' ? 'Siège social' : 'Adresse du domicile'}</Label>
         <Input
           id="adresse"
-          value={form.adresse}
-          onChange={(e) => setForm({ ...form, adresse: e.target.value })}
+          value={adresse}
+          onChange={(e) => setAdresse(e.target.value)}
           required
         />
       </div>
 
-      {form.type === 'societe' && (
+      {type === 'societe' && (
         <div className="space-y-2">
           <Label htmlFor="siret">Numéro SIRET</Label>
           <Input
             id="siret"
-            value={form.siret}
-            onChange={(e) => setForm({ ...form, siret: e.target.value })}
+            value={siret}
+            onChange={(e) => setSiret(e.target.value)}
           />
         </div>
       )}
@@ -84,8 +89,8 @@ export function BailleurForm({ bailleur, onSave, onCancel }: BailleurFormProps) 
         <Input
           id="email"
           type="email"
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
       </div>
 
@@ -93,8 +98,8 @@ export function BailleurForm({ bailleur, onSave, onCancel }: BailleurFormProps) 
         <Label htmlFor="telephone">Téléphone (optionnel)</Label>
         <Input
           id="telephone"
-          value={form.telephone}
-          onChange={(e) => setForm({ ...form, telephone: e.target.value })}
+          value={telephone}
+          onChange={(e) => setTelephone(e.target.value)}
         />
       </div>
 
