@@ -122,7 +122,6 @@ export function useLocalStorage() {
       const { data: inserted, error } = await supabase
         .from('bailleurs')
         .insert({
-          id: bailleur.id,
           user_id: user.id,
           nom: bailleur.nom,
           adresse: bailleur.adresse,
@@ -142,10 +141,19 @@ export function useLocalStorage() {
 
       if (inserted) {
         console.log('Bailleur inserted successfully, updating local state');
+        const newBailleur = {
+          id: inserted.id,
+          nom: inserted.nom,
+          adresse: inserted.adresse,
+          email: inserted.email,
+          type: inserted.type,
+          siret: inserted.siret,
+          telephone: '',
+        };
         setData(prev => ({
           ...prev,
-          bailleurs: [...prev.bailleurs, bailleur],
-          activeBailleurId: prev.activeBailleurId || bailleur.id,
+          bailleurs: [...prev.bailleurs, newBailleur],
+          activeBailleurId: prev.activeBailleurId || inserted.id,
         }));
         console.log('Calling loadData to refresh');
         await loadData();
