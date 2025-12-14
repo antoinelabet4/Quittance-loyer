@@ -31,7 +31,7 @@ export function QuittanceGenerator({
   onSave,
   getNextQuittanceNumber,
   onCreateAppartement,
-  onCreateLocataire,
+  onCreateLocataire
 }: QuittanceGeneratorProps) {
   const currentDate = new Date();
   const [selectedAppartementId, setSelectedAppartementId] = useState<string>('');
@@ -50,29 +50,29 @@ export function QuittanceGenerator({
   const [emailTo, setEmailTo] = useState('');
   const [emailBody, setEmailBody] = useState('');
 
-  const selectedAppartement = useMemo(() => 
-    appartements.find(a => a.id === selectedAppartementId),
-    [appartements, selectedAppartementId]
+  const selectedAppartement = useMemo(() =>
+  appartements.find((a) => a.id === selectedAppartementId),
+  [appartements, selectedAppartementId]
   );
 
-  const selectedBailleur = useMemo(() => 
-    selectedAppartement ? bailleurs.find(b => b.id === selectedAppartement.bailleurId) : null,
-    [bailleurs, selectedAppartement]
+  const selectedBailleur = useMemo(() =>
+  selectedAppartement ? bailleurs.find((b) => b.id === selectedAppartement.bailleurId) : null,
+  [bailleurs, selectedAppartement]
   );
 
-  const selectedLocataire = useMemo(() => 
-    locataires.find(l => l.id === selectedLocataireId),
-    [locataires, selectedLocataireId]
+  const selectedLocataire = useMemo(() =>
+  locataires.find((l) => l.id === selectedLocataireId),
+  [locataires, selectedLocataireId]
   );
 
-  const existingQuittance = useMemo(() => 
-    quittances.find(q => 
-      q.appartementId === selectedAppartementId && 
-      q.locataireId === selectedLocataireId &&
-      q.mois === selectedMois && 
-      q.annee === selectedAnnee
-    ),
-    [quittances, selectedAppartementId, selectedLocataireId, selectedMois, selectedAnnee]
+  const existingQuittance = useMemo(() =>
+  quittances.find((q) =>
+  q.appartementId === selectedAppartementId &&
+  q.locataireId === selectedLocataireId &&
+  q.mois === selectedMois &&
+  q.annee === selectedAnnee
+  ),
+  [quittances, selectedAppartementId, selectedLocataireId, selectedMois, selectedAnnee]
   );
 
   const years = useMemo(() => {
@@ -110,7 +110,7 @@ export function QuittanceGenerator({
       modePaiement,
       loyer,
       charges,
-      total: loyer + charges,
+      total: loyer + charges
     };
   };
 
@@ -146,7 +146,7 @@ ${selectedBailleur.nom}`;
     console.log('🟢 [FRONT] emailFrom:', emailFrom);
     console.log('🟢 [FRONT] emailTo:', emailTo);
     console.log('🟢 [FRONT] emailBody:', emailBody);
-    
+
     if (!emailTo || !emailFrom || !emailBody || !quittancePreview || !selectedBailleur || !selectedLocataire) {
       console.error('❌ [FRONT] Données manquantes');
       alert('Veuillez remplir tous les champs');
@@ -157,10 +157,10 @@ ${selectedBailleur.nom}`;
       alert('Adresse email du destinataire invalide');
       return;
     }
-      
+
     setSendingEmail(true);
     setShowEmailComposer(false);
-    
+
     console.log('🟢 [FRONT] Préparation payload...');
     const payload = {
       type: 'email',
@@ -170,24 +170,24 @@ ${selectedBailleur.nom}`;
       quittance: quittancePreview,
       bailleur: selectedBailleur,
       locataire: selectedLocataire,
-      appartement: selectedAppartement,
+      appartement: selectedAppartement
     };
     console.log('🟢 [FRONT] Payload:', JSON.stringify(payload, null, 2));
-    
+
     try {
       console.log('🟢 [FRONT] Envoi requête à /api/send-quittance...');
       const response = await fetch('/api/send-quittance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload)
       });
-      
+
       console.log('🟢 [FRONT] Response status:', response.status);
       console.log('🟢 [FRONT] Response ok:', response.ok);
-      
+
       const data = await response.json();
       console.log('🟢 [FRONT] Response data:', data);
-      
+
       if (response.ok) {
         console.log('✅ [FRONT] Email envoyé avec succès');
         alert(`Quittance envoyée à ${emailTo} avec succès !`);
@@ -220,37 +220,37 @@ ${selectedBailleur.nom}`;
     console.log('🟢 [FRONT] handleSendSMS appelée');
     console.log('🟢 [FRONT] selectedLocataire:', selectedLocataire);
     console.log('🟢 [FRONT] telephone:', selectedLocataire?.telephone);
-    
+
     if (!selectedLocataire?.telephone || !quittancePreview || !selectedBailleur) {
       console.error('❌ [FRONT] Données manquantes pour SMS');
       alert('Le locataire doit avoir un numéro de téléphone');
       return;
     }
-    
+
     setSendingSMS(true);
-    
+
     const payload = {
       type: 'sms',
       to: selectedLocataire.telephone,
       quittance: quittancePreview,
       bailleur: selectedBailleur,
       locataire: selectedLocataire,
-      appartement: selectedAppartement,
+      appartement: selectedAppartement
     };
     console.log('🟢 [FRONT] SMS Payload:', JSON.stringify(payload, null, 2));
-    
+
     try {
       console.log('🟢 [FRONT] Envoi SMS...');
       const response = await fetch('/api/send-quittance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload)
       });
-      
+
       console.log('🟢 [FRONT] SMS Response status:', response.status);
       const data = await response.json();
       console.log('🟢 [FRONT] SMS Response data:', data);
-      
+
       if (response.ok) {
         console.log('✅ [FRONT] SMS envoyé');
         alert('Notification SMS envoyée avec succès !');
@@ -284,10 +284,10 @@ ${selectedBailleur.nom}`;
           locataires={locataires}
           onSave={handleCreateAppartement}
           onCancel={() => setShowCreateAppartement(false)}
-          onCreateLocataire={onCreateLocataire}
-        />
-      </div>
-    );
+          onCreateLocataire={onCreateLocataire} />
+
+      </div>);
+
   }
 
   if (appartements.length === 0) {
@@ -300,40 +300,40 @@ ${selectedBailleur.nom}`;
           <Plus className="w-4 h-4 mr-2" />
           Créer un logement
         </Button>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
     <div className="space-y-6">
-      {!showPreview ? (
-        <div className="space-y-6">
+      {!showPreview ?
+      <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label>Appartement</Label>
               <div className="flex gap-2">
                 <Select value={selectedAppartementId} onValueChange={(id) => {
-                  setSelectedAppartementId(id);
-                  const appt = appartements.find(a => a.id === id);
-                  if (appt && appt.locataireIds.length > 0) {
-                    setSelectedLocataireId(appt.locataireIds[0]);
-                  }
-                }}>
+                setSelectedAppartementId(id);
+                const appt = appartements.find((a) => a.id === id);
+                if (appt && appt.locataireIds.length > 0) {
+                  setSelectedLocataireId(appt.locataireIds[0]);
+                }
+              }}>
                   <SelectTrigger className="flex-1">
                     <SelectValue placeholder="Sélectionner un appartement" />
                   </SelectTrigger>
                   <SelectContent>
                     {appartements.map((a) => {
-                      const locataireNames = a.locataireIds
-                        .map(id => locataires.find(l => l.id === id)?.nom)
-                        .filter(Boolean)
-                        .join(', ');
-                      return (
-                        <SelectItem key={a.id} value={a.id}>
+                    const locataireNames = a.locataireIds.
+                    map((id) => locataires.find((l) => l.id === id)?.nom).
+                    filter(Boolean).
+                    join(', ');
+                    return (
+                      <SelectItem key={a.id} value={a.id}>
                           {a.adresse} ({locataireNames || 'Sans locataire'})
-                        </SelectItem>
-                      );
-                    })}
+                        </SelectItem>);
+
+                  })}
                   </SelectContent>
                 </Select>
                 <Button type="button" size="sm" variant="outline" onClick={() => setShowCreateAppartement(true)}>
@@ -342,23 +342,23 @@ ${selectedBailleur.nom}`;
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 !w-[371px] !h-full">
               <Label>Locataire</Label>
-              <Select 
-                value={selectedLocataireId} 
-                onValueChange={setSelectedLocataireId}
-                disabled={!selectedAppartement}
-              >
+              <Select
+              value={selectedLocataireId}
+              onValueChange={setSelectedLocataireId}
+              disabled={!selectedAppartement}>
+
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner un locataire" />
                 </SelectTrigger>
                 <SelectContent>
                   {selectedAppartement?.locataireIds.map((id) => {
-                    const loc = locataires.find(l => l.id === id);
-                    return loc ? (
-                      <SelectItem key={id} value={id}>{loc.nom}</SelectItem>
-                    ) : null;
-                  })}
+                  const loc = locataires.find((l) => l.id === id);
+                  return loc ?
+                  <SelectItem key={id} value={id}>{loc.nom}</SelectItem> :
+                  null;
+                })}
                 </SelectContent>
               </Select>
             </div>
@@ -373,9 +373,9 @@ ${selectedBailleur.nom}`;
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {MOIS.map((mois, index) => (
-                      <SelectItem key={index} value={index.toString()}>{mois}</SelectItem>
-                    ))}
+                    {MOIS.map((mois, index) =>
+                  <SelectItem key={index} value={index.toString()}>{mois}</SelectItem>
+                  )}
                   </SelectContent>
                 </Select>
               </div>
@@ -386,9 +386,9 @@ ${selectedBailleur.nom}`;
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {years.map((year) => (
-                      <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                    ))}
+                    {years.map((year) =>
+                  <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                  )}
                   </SelectContent>
                 </Select>
               </div>
@@ -397,10 +397,10 @@ ${selectedBailleur.nom}`;
             <div className="space-y-2">
               <Label>Date de paiement</Label>
               <Input
-                type="date"
-                value={datePaiement}
-                onChange={(e) => setDatePaiement(e.target.value)}
-              />
+              type="date"
+              value={datePaiement}
+              onChange={(e) => setDatePaiement(e.target.value)} />
+
             </div>
           </div>
 
@@ -408,10 +408,10 @@ ${selectedBailleur.nom}`;
             <div className="space-y-2">
               <Label>Lieu d&apos;émission</Label>
               <Input
-                value={lieuEmission}
-                onChange={(e) => setLieuEmission(e.target.value)}
-                placeholder="Paris"
-              />
+              value={lieuEmission}
+              onChange={(e) => setLieuEmission(e.target.value)}
+              placeholder="Paris" />
+
             </div>
             <div className="space-y-2">
               <Label>Mode de paiement</Label>
@@ -430,24 +430,24 @@ ${selectedBailleur.nom}`;
             </div>
           </div>
 
-          {existingQuittance && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-amber-800">
+          {existingQuittance &&
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-amber-800">
               Une quittance existe déjà pour ce locataire pour {MOIS[selectedMois]} {selectedAnnee}. 
               Elle sera mise à jour.
             </div>
-          )}
+        }
 
-          <Button 
-            onClick={() => setShowPreview(true)} 
-            className="w-full"
-            disabled={!selectedAppartementId || !selectedLocataireId || !lieuEmission}
-          >
+          <Button
+          onClick={() => setShowPreview(true)}
+          className="w-full"
+          disabled={!selectedAppartementId || !selectedLocataireId || !lieuEmission}>
+
             <FileText className="w-4 h-4 mr-2" />
             Aperçu de la quittance
           </Button>
-        </div>
-      ) : (
-        <div className="space-y-6">
+        </div> :
+
+      <div className="space-y-6">
           <div className="flex gap-4 print:hidden flex-wrap">
             <Button onClick={() => setShowPreview(false)} variant="outline">
               Retour
@@ -460,36 +460,36 @@ ${selectedBailleur.nom}`;
               <Download className="w-4 h-4 mr-2" />
               Imprimer / PDF
             </Button>
-            <Button 
-              onClick={handleSendEmail} 
-              variant="outline"
-              disabled={sendingEmail}
-            >
+            <Button
+            onClick={handleSendEmail}
+            variant="outline"
+            disabled={sendingEmail}>
+
               <Mail className="w-4 h-4 mr-2" />
               {sendingEmail ? 'Envoi...' : 'Envoyer par email'}
             </Button>
-            {selectedLocataire?.telephone && (
-              <Button 
-                onClick={handleSendSMS} 
-                variant="outline"
-                disabled={sendingSMS}
-              >
+            {selectedLocataire?.telephone &&
+          <Button
+            onClick={handleSendSMS}
+            variant="outline"
+            disabled={sendingSMS}>
+
                 <MessageSquare className="w-4 h-4 mr-2" />
                 {sendingSMS ? 'Envoi...' : 'Envoyer par SMS'}
               </Button>
-            )}
+          }
           </div>
 
-          {quittancePreview && selectedBailleur && selectedLocataire && selectedAppartement && (
-            <div className="border rounded-lg overflow-hidden shadow-lg">
+          {quittancePreview && selectedBailleur && selectedLocataire && selectedAppartement &&
+        <div className="border rounded-lg overflow-hidden shadow-lg">
               <QuittancePreview
-                quittance={quittancePreview}
-                bailleur={selectedBailleur}
-                locataire={selectedLocataire}
-                appartement={selectedAppartement}
-              />
+            quittance={quittancePreview}
+            bailleur={selectedBailleur}
+            locataire={selectedLocataire}
+            appartement={selectedAppartement} />
+
             </div>
-          )}
+        }
 
           <Dialog open={showEmailComposer} onOpenChange={setShowEmailComposer}>
             <DialogContent className="max-w-2xl">
@@ -506,24 +506,24 @@ ${selectedBailleur.nom}`;
                 <div className="space-y-2">
                   <Label htmlFor="email-to">À (destinataire - locataire)</Label>
                   <Input
-                    id="email-to"
-                    type="email"
-                    value={emailTo}
-                    onChange={(e) => setEmailTo(e.target.value)}
-                    placeholder="locataire@exemple.fr"
-                  />
+                  id="email-to"
+                  type="email"
+                  value={emailTo}
+                  onChange={(e) => setEmailTo(e.target.value)}
+                  placeholder="locataire@exemple.fr" />
+
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="email-body">Message</Label>
                   <textarea
-                    id="email-body"
-                    value={emailBody}
-                    onChange={(e) => setEmailBody(e.target.value)}
-                    rows={12}
-                    className="w-full px-3 py-2 border rounded-md resize-none font-mono text-sm"
-                    placeholder="Contenu du message..."
-                  />
+                  id="email-body"
+                  value={emailBody}
+                  onChange={(e) => setEmailBody(e.target.value)}
+                  rows={12}
+                  className="w-full px-3 py-2 border rounded-md resize-none font-mono text-sm"
+                  placeholder="Contenu du message..." />
+
                 </div>
               </div>
               <DialogFooter>
@@ -538,7 +538,7 @@ ${selectedBailleur.nom}`;
             </DialogContent>
           </Dialog>
         </div>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 }
