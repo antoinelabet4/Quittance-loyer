@@ -1,38 +1,43 @@
 import { NextResponse } from 'next/server';
 
-const users = new Map<string, { id: string; email: string; password: string; nom: string }>();
-
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { email, password, nom, bailleurName } = body;
-    const name = nom || bailleurName;
+    const { email, password, nom } = await request.json();
 
-    if (!email || !password || !name) {
+    if (!email || !password || !nom) {
       return NextResponse.json(
-        { error: 'Email, mot de passe et nom requis' },
+        { error: 'Tous les champs sont requis' },
         { status: 400 }
       );
     }
 
-    if (users.has(email)) {
+    const usersData = typeof window === 'undefined' 
+      ? global.usersStore || (global.usersStore = {})
+      : {};
+
+    if (usersData[email]) {
       return NextResponse.json(
-        { error: 'Un compte existe déjà avec cet email' },
+        { error: 'Cet email est déjà utilisé' },
         { status: 400 }
       );
     }
 
     const userId = `user_${Date.now()}`;
-    users.set(email, { id: userId, email, password, nom: name });
+    const user = { id: userId, email, password, nom };
+    usersData[email] = user;
 
     return NextResponse.json({
-      user: { id: userId, email, nom: name },
+      user: { id: user.id, email: user.email, nom: user.nom },
     });
   } catch (error) {
     console.error('Signup error:', error);
     return NextResponse.json(
-      { error: 'Erreur lors de la création du compte' },
+      { error: 'Erreur lors de l\'inscription' },
       { status: 500 }
     );
   }
+}
+
+declare global {
+  var usersStore: Record<string, { id: string; email: string; password: string; nom: string }>;
 }
