@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
@@ -12,6 +12,7 @@ export async function POST(request: Request) {
       );
     }
 
+    const supabaseAdmin = getSupabaseAdmin();
     const { data, error } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
