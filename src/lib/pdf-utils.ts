@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { Quittance, Bailleur, Locataire, Appartement } from './types';
+import React from 'react';
 
 export async function generateQuittancePDF(
   quittance: Quittance,
@@ -9,11 +10,14 @@ export async function generateQuittancePDF(
   appartement: Appartement
 ): Promise<void> {
   const tempDiv = document.createElement('div');
-  tempDiv.style.position = 'absolute';
-  tempDiv.style.left = '-99999px';
-  tempDiv.style.width = '210mm';
-  tempDiv.style.padding = '20mm';
-  tempDiv.style.backgroundColor = '#ffffff';
+  tempDiv.style.cssText = `
+    position: absolute;
+    left: -99999px;
+    width: 210mm;
+    padding: 0;
+    background: white;
+    font-family: ui-serif, Georgia, serif;
+  `;
   document.body.appendChild(tempDiv);
 
   const { createRoot } = await import('react-dom/client');
@@ -21,26 +25,32 @@ export async function generateQuittancePDF(
   
   const root = createRoot(tempDiv);
   
-  await new Promise<void>((resolve) => {
-    root.render(
-      QuittancePreview({
-        quittance,
-        bailleur,
-        locataire,
-        appartement
-      })
-    );
-    setTimeout(resolve, 1000);
-  });
-
   try {
+    await new Promise<void>((resolve) => {
+      root.render(
+        React.createElement(QuittancePreview, {
+          quittance,
+          bailleur,
+          locataire,
+          appartement
+        })
+      );
+      setTimeout(resolve, 1200);
+    });
+
     const canvas = await html2canvas(tempDiv, {
       scale: 2,
       useCORS: true,
       logging: false,
       backgroundColor: '#ffffff',
       windowWidth: 794,
-      windowHeight: 1123
+      windowHeight: 1123,
+      onclone: (clonedDoc) => {
+        const clonedElement = clonedDoc.body.querySelector('div');
+        if (clonedElement) {
+          clonedElement.style.backgroundColor = '#ffffff';
+        }
+      }
     });
 
     const pdf = new jsPDF('p', 'mm', 'a4');
@@ -55,6 +65,9 @@ export async function generateQuittancePDF(
     const nomClean = locataire.nom.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
     
     pdf.save(`quittance_${nomClean}_${moisStr}_${anneeStr}.pdf`);
+  } catch (error) {
+    console.error('Erreur génération PDF:', error);
+    throw error;
   } finally {
     root.unmount();
     document.body.removeChild(tempDiv);
