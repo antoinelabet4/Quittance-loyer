@@ -20,6 +20,9 @@ export default function AdminPage() {
     if (!loading && !user) {
       router.push('/');
     }
+    if (!loading && user && user.email !== 'antoinelabet@gmail.com') {
+      router.push('/');
+    }
   }, [user, loading, router]);
 
   useEffect(() => {
