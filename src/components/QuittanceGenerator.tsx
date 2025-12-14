@@ -162,6 +162,17 @@ export function QuittanceGenerator({
     }
   };
 
+  const handleSave = () => {
+    if (quittancePreview) {
+      onSave(quittancePreview);
+      setShowPreview(false);
+    }
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   const handleSendSMS = async () => {
     if (!selectedLocataire?.telephone || !quittancePreview || !selectedBailleur) {
       alert('Le locataire doit avoir un numéro de téléphone');
