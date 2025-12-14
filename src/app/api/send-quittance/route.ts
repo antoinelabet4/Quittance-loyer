@@ -29,12 +29,14 @@ export async function POST(request: NextRequest) {
 
     if (type === 'email') {
       const emailBody = customBody || generateEmailBody(quittance, bailleur, locataire, appartement);
-      const fromEmail = from || bailleur.email || 'onboarding@resend.dev';
+      const fromEmail = 'onboarding@resend.dev';
+      const ccEmail = bailleur.email;
       
       console.log('📧 [EMAIL] Configuration:');
       console.log('📧 [EMAIL] De (FROM):', fromEmail);
       console.log('📧 [EMAIL] Nom expéditeur:', bailleur.nom);
       console.log('📧 [EMAIL] À (TO):', to);
+      console.log('📧 [EMAIL] CC (copie):', ccEmail);
       console.log('📧 [EMAIL] Sujet:', `Quittance de loyer - ${MOIS[quittance.mois]} ${quittance.annee}`);
       console.log('📧 [EMAIL] Corps:', emailBody.substring(0, 200) + '...');
       console.log('📧 [EMAIL] RESEND_API_KEY présent:', !!process.env.RESEND_API_KEY);
@@ -46,19 +48,26 @@ export async function POST(request: NextRequest) {
           const resend = new Resend(process.env.RESEND_API_KEY);
           
           console.log('📧 [EMAIL] Envoi depuis:', fromEmail);
+          console.log('📧 [EMAIL] Avec copie à:', ccEmail);
           
-          const result = await resend.emails.send({
+          const emailOptions: any = {
             from: `${bailleur.nom} <${fromEmail}>`,
             to: [to],
             subject: `Quittance de loyer - ${MOIS[quittance.mois]} ${quittance.annee}`,
             html: emailBody.replace(/\n/g, '<br>'),
-          });
+          };
+
+          if (ccEmail) {
+            emailOptions.cc = [ccEmail];
+          }
+          
+          const result = await resend.emails.send(emailOptions);
           
           console.log('✅ [EMAIL] Email envoyé avec succès via Resend:', result);
           
           return NextResponse.json({ 
             success: true, 
-            message: `Email envoyé de ${bailleur.nom} (${fromEmail}) à ${to}`,
+            message: `Email envoyé de ${bailleur.nom} (${fromEmail}) à ${to} avec copie à ${ccEmail || 'personne'}`,
             result
           });
         } catch (resendError) {
@@ -73,7 +82,7 @@ export async function POST(request: NextRequest) {
         console.log('⚠️ [EMAIL] Resend non configuré, simulation seulement');
         return NextResponse.json({ 
           success: true, 
-          message: `Email simulé envoyé de ${bailleur.nom} (${fromEmail}) à ${to}. Configurez RESEND_API_KEY pour l'envoi réel.` 
+          message: `Email simulé envoyé de ${bailleur.nom} (${fromEmail}) à ${to} avec copie à ${ccEmail || 'personne'}. Configurez RESEND_API_KEY pour l'envoi réel.` 
         });
       }
     } else if (type === 'sms') {
