@@ -47,6 +47,10 @@ export function QuittanceGenerator({
   const [sendingSMS, setSendingSMS] = useState(false);
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [emailRecipient, setEmailRecipient] = useState<'bailleur' | 'locataire' | ''>('');
+  const [showEmailComposer, setShowEmailComposer] = useState(false);
+  const [emailFrom, setEmailFrom] = useState('');
+  const [emailTo, setEmailTo] = useState('');
+  const [emailBody, setEmailBody] = useState('');
 
   const selectedAppartement = useMemo(() => 
     appartements.find(a => a.id === selectedAppartementId),
@@ -115,42 +119,57 @@ export function QuittanceGenerator({
   const quittancePreview = generateQuittance();
 
   const handleSendEmail = async () => {
-    setShowEmailDialog(true);
+    if (!selectedBailleur || !selectedLocataire || !quittancePreview || !selectedAppartement) {
+      alert('Données incomplètes');
+      return;
+    }
+
+    const defaultFrom = selectedBailleur.email || 'onboarding@resend.dev';
+    const defaultTo = selectedLocataire.email || '';
+    const defaultBody = `Bonjour ${selectedLocataire.nom},
+
+Veuillez trouver ci-joint la quittance de loyer pour la période de ${MOIS[quittancePreview.mois]} ${quittancePreview.annee}.
+
+Logement : ${selectedAppartement.adresse}
+Montant du loyer : ${quittancePreview.loyer.toFixed(2)} €
+Charges : ${quittancePreview.charges.toFixed(2)} €
+Total payé : ${quittancePreview.total.toFixed(2)} €
+
+Cordialement,
+${selectedBailleur.nom}`;
+
+    setEmailFrom(defaultFrom);
+    setEmailTo(defaultTo);
+    setEmailBody(defaultBody);
+    setShowEmailComposer(true);
   };
 
   const confirmSendEmail = async () => {
     console.log('🟢 [FRONT] confirmSendEmail appelée');
-    console.log('🟢 [FRONT] emailRecipient:', emailRecipient);
-    console.log('🟢 [FRONT] quittancePreview:', quittancePreview);
-    console.log('🟢 [FRONT] selectedBailleur:', selectedBailleur);
-    console.log('🟢 [FRONT] selectedLocataire:', selectedLocataire);
+    console.log('🟢 [FRONT] emailFrom:', emailFrom);
+    console.log('🟢 [FRONT] emailTo:', emailTo);
+    console.log('🟢 [FRONT] emailBody:', emailBody);
     
-    if (!emailRecipient || !quittancePreview || !selectedBailleur || !selectedLocataire) {
-      console.error('❌ [FRONT] Données manquantes:', { emailRecipient, quittancePreview: !!quittancePreview, bailleur: !!selectedBailleur, locataire: !!selectedLocataire });
-      alert('Veuillez sélectionner un destinataire');
+    if (!emailTo || !emailFrom || !emailBody || !quittancePreview || !selectedBailleur || !selectedLocataire) {
+      console.error('❌ [FRONT] Données manquantes');
+      alert('Veuillez remplir tous les champs');
       return;
     }
 
-    const recipient = emailRecipient === 'bailleur' ? selectedBailleur : selectedLocataire;
-    const recipientEmail = recipient.email;
-
-    console.log('🟢 [FRONT] Recipient:', recipient.nom);
-    console.log('🟢 [FRONT] Recipient email:', recipientEmail);
-
-    if (!recipientEmail) {
-      console.error('❌ [FRONT] Email manquant pour', emailRecipient);
-      alert(`${emailRecipient === 'bailleur' ? 'Le bailleur' : 'Le locataire'} n'a pas d'adresse email`);
+    if (!emailTo.includes('@')) {
+      alert('Adresse email du destinataire invalide');
       return;
     }
-    
+      
     setSendingEmail(true);
-    setShowEmailDialog(false);
+    setShowEmailComposer(false);
     
     console.log('🟢 [FRONT] Préparation payload...');
     const payload = {
       type: 'email',
-      to: recipientEmail,
-      recipient: emailRecipient,
+      from: emailFrom,
+      to: emailTo,
+      body: emailBody,
       quittance: quittancePreview,
       bailleur: selectedBailleur,
       locataire: selectedLocataire,
@@ -174,7 +193,7 @@ export function QuittanceGenerator({
       
       if (response.ok) {
         console.log('✅ [FRONT] Email envoyé avec succès');
-        alert(`Quittance envoyée à ${emailRecipient === 'bailleur' ? selectedBailleur.nom : selectedLocataire.nom} (${recipientEmail}) avec succès !`);
+        alert(`Quittance envoyée à ${emailTo} avec succès !`);
       } else {
         console.error('❌ [FRONT] Erreur réponse:', data);
         throw new Error(data.error || 'Erreur lors de l\'envoi');
@@ -185,7 +204,6 @@ export function QuittanceGenerator({
       alert('Erreur lors de l\'envoi de l\'email');
     } finally {
       setSendingEmail(false);
-      setEmailRecipient('');
       console.log('🟢 [FRONT] Fin de confirmSendEmail');
     }
   };
@@ -521,6 +539,61 @@ export function QuittanceGenerator({
                   Annuler
                 </Button>
                 <Button onClick={confirmSendEmail} disabled={!emailRecipient}>
+                  <Mail className="w-4 h-4 mr-2" />
+                  Envoyer
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={showEmailComposer} onOpenChange={setShowEmailComposer}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Composer l'email</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email-from">De (expéditeur)</Label>
+                  <Input
+                    id="email-from"
+                    type="email"
+                    value={emailFrom}
+                    onChange={(e) => setEmailFrom(e.target.value)}
+                    placeholder="contact@exemple.fr"
+                  />
+                  <p className="text-xs text-gray-500">
+                    ⚠️ Pour utiliser votre email, vérifiez d'abord votre domaine sur Resend
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="email-to">À (destinataire)</Label>
+                  <Input
+                    id="email-to"
+                    type="email"
+                    value={emailTo}
+                    onChange={(e) => setEmailTo(e.target.value)}
+                    placeholder="locataire@exemple.fr"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email-body">Message</Label>
+                  <textarea
+                    id="email-body"
+                    value={emailBody}
+                    onChange={(e) => setEmailBody(e.target.value)}
+                    rows={12}
+                    className="w-full px-3 py-2 border rounded-md resize-none font-mono text-sm"
+                    placeholder="Contenu du message..."
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowEmailComposer(false)}>
+                  Annuler
+                </Button>
+                <Button onClick={confirmSendEmail} disabled={!emailTo || !emailFrom || !emailBody}>
                   <Mail className="w-4 h-4 mr-2" />
                   Envoyer
                 </Button>
