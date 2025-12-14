@@ -18,18 +18,33 @@ export async function POST(request: NextRequest) {
       locataire: Locataire;
       appartement: Appartement;
     };
+    
+    const { type, to, from, body: customBody, quittance, bailleur, locataire, appartement } = body as {
+      type: 'email' | 'sms';
+      to: string;
+      from?: string;
+      body?: string;
+      quittance: Quittance;
+      bailleur: Bailleur;
+      locataire: Locataire;
+      appartement: Appartement;
+    };
 
     console.log('🔵 [API] Type:', type);
     console.log('🔵 [API] Destinataire:', to);
     console.log('🔵 [API] Recipient type:', recipient);
+    console.log('🔵 [API] From:', from);
+    console.log('🔵 [API] Custom body présent:', !!customBody);
     console.log('🔵 [API] Bailleur:', bailleur.nom, bailleur.email);
     console.log('🔵 [API] Locataire:', locataire.nom, locataire.email);
 
     if (type === 'email') {
-      const emailBody = generateEmailBody(quittance, bailleur, locataire, appartement);
+      const emailBody = customBody || generateEmailBody(quittance, bailleur, locataire, appartement);
+      const fromEmail = from || bailleur.email || 'onboarding@resend.dev';
       
       console.log('📧 [EMAIL] Configuration:');
       console.log('📧 [EMAIL] De (FROM):', bailleur.email || 'no-reply@quittance.com');
+      console.log('📧 [EMAIL] De (FROM):', fromEmail);
       console.log('📧 [EMAIL] Nom expéditeur:', bailleur.nom);
       console.log('📧 [EMAIL] À (TO):', to);
       console.log('📧 [EMAIL] Type destinataire:', recipient);
@@ -37,7 +52,6 @@ export async function POST(request: NextRequest) {
       console.log('📧 [EMAIL] Corps:', emailBody.substring(0, 200) + '...');
       console.log('📧 [EMAIL] RESEND_API_KEY présent:', !!process.env.RESEND_API_KEY);
 
-      // Si Resend est configuré, envoyer un vrai email
       if (process.env.RESEND_API_KEY) {
         console.log('✅ [EMAIL] Resend configuré, tentative d\'envoi réel...');
         try {
