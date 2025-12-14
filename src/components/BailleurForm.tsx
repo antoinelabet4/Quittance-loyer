@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Bailleur } from '@/lib/types';
-import { generateId } from '@/lib/types';
 
 interface BailleurFormProps {
   bailleur: Bailleur | null;
@@ -27,7 +26,7 @@ export function BailleurForm({ bailleur, onSave, onCancel }: BailleurFormProps) 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave({
-      id: bailleur?.id || generateId(),
+      id: bailleur?.id || '',
       nom,
       adresse,
       type,
