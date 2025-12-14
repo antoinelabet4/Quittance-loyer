@@ -37,6 +37,7 @@ import {
   Shield
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export function Dashboard() {
   const { user, logout } = useAuth();
@@ -142,7 +143,7 @@ export function Dashboard() {
       <header className="bg-[#000091] text-white print:hidden">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <Link href="/landing" className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity">
               <div className="flex items-center gap-2">
                 <div className="w-10 h-10 bg-white rounded flex items-center justify-center overflow-hidden">
                   <img 
@@ -156,7 +157,7 @@ export function Dashboard() {
                   <p className="text-xs text-blue-200">Générateur de quittance gratuit</p>
                 </div>
               </div>
-            </div>
+            </Link>
             
             {bailleurs.length > 0 && (
               <div className="flex items-center gap-3">
