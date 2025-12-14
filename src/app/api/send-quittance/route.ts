@@ -3,35 +3,84 @@ import type { Quittance, Bailleur, Locataire, Appartement } from '@/lib/types';
 import { MOIS, formatMoney, formatDate } from '@/lib/types';
 
 export async function POST(request: NextRequest) {
+  console.log('🔵 [API] Réception requête send-quittance');
+  
   try {
     const body = await request.json();
-    const { type, to, quittance, bailleur, locataire, appartement } = body as {
+    console.log('🔵 [API] Body reçu:', JSON.stringify(body, null, 2));
+    
+    const { type, to, recipient, quittance, bailleur, locataire, appartement } = body as {
       type: 'email' | 'sms';
       to: string;
+      recipient?: 'bailleur' | 'locataire';
       quittance: Quittance;
       bailleur: Bailleur;
       locataire: Locataire;
       appartement: Appartement;
     };
 
+    console.log('🔵 [API] Type:', type);
+    console.log('🔵 [API] Destinataire:', to);
+    console.log('🔵 [API] Recipient type:', recipient);
+    console.log('🔵 [API] Bailleur:', bailleur.nom, bailleur.email);
+    console.log('🔵 [API] Locataire:', locataire.nom, locataire.email);
+
     if (type === 'email') {
       const emailBody = generateEmailBody(quittance, bailleur, locataire, appartement);
       
-      console.log('Envoi email :');
-      console.log('De (expéditeur):', bailleur.email || bailleur.nom);
-      console.log('À:', to);
-      console.log('Sujet:', `Quittance de loyer - ${MOIS[quittance.mois]} ${quittance.annee}`);
-      console.log('Corps:', emailBody);
+      console.log('📧 [EMAIL] Configuration:');
+      console.log('📧 [EMAIL] De (FROM):', bailleur.email || 'no-reply@quittance.com');
+      console.log('📧 [EMAIL] Nom expéditeur:', bailleur.nom);
+      console.log('📧 [EMAIL] À (TO):', to);
+      console.log('📧 [EMAIL] Type destinataire:', recipient);
+      console.log('📧 [EMAIL] Sujet:', `Quittance de loyer - ${MOIS[quittance.mois]} ${quittance.annee}`);
+      console.log('📧 [EMAIL] Corps:', emailBody.substring(0, 200) + '...');
+      console.log('📧 [EMAIL] RESEND_API_KEY présent:', !!process.env.RESEND_API_KEY);
 
-      return NextResponse.json({ 
-        success: true, 
-        message: `Email simulé envoyé de ${bailleur.nom} à ${to} (configurez un service email pour l'envoi réel)` 
-      });
+      // Si Resend est configuré, envoyer un vrai email
+      if (process.env.RESEND_API_KEY) {
+        console.log('✅ [EMAIL] Resend configuré, tentative d\'envoi réel...');
+        try {
+          const { Resend } = await import('resend');
+          const resend = new Resend(process.env.RESEND_API_KEY);
+          
+          const fromEmail = bailleur.email || 'no-reply@quittance.com';
+          console.log('📧 [EMAIL] Envoi depuis:', fromEmail);
+          
+          const result = await resend.emails.send({
+            from: `${bailleur.nom} <${fromEmail}>`,
+            to: [to],
+            subject: `Quittance de loyer - ${MOIS[quittance.mois]} ${quittance.annee}`,
+            html: emailBody.replace(/\n/g, '<br>'),
+          });
+          
+          console.log('✅ [EMAIL] Email envoyé avec succès via Resend:', result);
+          
+          return NextResponse.json({ 
+            success: true, 
+            message: `Email envoyé de ${bailleur.nom} (${fromEmail}) à ${to}`,
+            result
+          });
+        } catch (resendError) {
+          console.error('❌ [EMAIL] Erreur Resend:', resendError);
+          return NextResponse.json({ 
+            success: false, 
+            error: 'Erreur lors de l\'envoi via Resend',
+            details: resendError instanceof Error ? resendError.message : String(resendError)
+          }, { status: 500 });
+        }
+      } else {
+        console.log('⚠️ [EMAIL] Resend non configuré, simulation seulement');
+        return NextResponse.json({ 
+          success: true, 
+          message: `Email simulé envoyé de ${bailleur.nom} (${bailleur.email}) à ${to}. Configurez RESEND_API_KEY pour l'envoi réel.` 
+        });
+      }
     } else if (type === 'sms') {
       const smsBody = generateSMSBody(quittance, bailleur, locataire);
       
-      console.log('Envoi SMS à:', to);
-      console.log('Message:', smsBody);
+      console.log('📱 [SMS] Envoi à:', to);
+      console.log('📱 [SMS] Message:', smsBody);
 
       return NextResponse.json({ 
         success: true, 
@@ -39,10 +88,15 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    console.log('❌ [API] Type invalide:', type);
     return NextResponse.json({ error: 'Type invalide' }, { status: 400 });
   } catch (error) {
-    console.error('Erreur lors de l\'envoi:', error);
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+    console.error('❌ [API] Erreur critique:', error);
+    console.error('❌ [API] Stack:', error instanceof Error ? error.stack : 'No stack');
+    return NextResponse.json({ 
+      error: 'Erreur serveur',
+      details: error instanceof Error ? error.message : String(error)
+    }, { status: 500 });
   }
 }
 
