@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 export function Dashboard() {
   const { user, logout } = useAuth();
@@ -87,8 +88,10 @@ export function Dashboard() {
     try {
       if (editingBailleur) {
         await updateBailleur(bailleur);
+        toast.success('Bailleur modifié avec succès !');
       } else {
         await addBailleur(bailleur);
+        toast.success('Bailleur créé avec succès !');
         if (!activeBailleurId) {
           setActiveBailleur(bailleur.id);
         }
@@ -97,15 +100,17 @@ export function Dashboard() {
       setEditingBailleur(null);
     } catch (error) {
       console.error('Error saving bailleur:', error);
-      alert('Erreur lors de la sauvegarde du bailleur. Veuillez réessayer.');
+      toast.error('Erreur lors de la sauvegarde du bailleur.');
     }
   };
 
   const handleSaveLocataire = (locataire: Locataire) => {
     if (editingLocataire) {
       updateLocataire(locataire);
+      toast.success('Locataire modifié avec succès !');
     } else {
       addLocataire(locataire);
+      toast.success('Locataire créé avec succès !');
     }
     setShowLocataireForm(false);
     setEditingLocataire(null);
@@ -114,8 +119,10 @@ export function Dashboard() {
   const handleSaveAppartement = (appartement: Appartement) => {
     if (editingAppartement) {
       updateAppartement(appartement);
+      toast.success('Logement modifié avec succès !');
     } else {
       addAppartement(appartement);
+      toast.success('Logement créé avec succès !');
     }
     setShowAppartementForm(false);
     setEditingAppartement(null);
@@ -125,8 +132,10 @@ export function Dashboard() {
     const existing = quittances.find(q => q.id === quittance.id);
     if (existing) {
       updateQuittance(quittance);
+      toast.success('Quittance mise à jour !');
     } else {
       addQuittance(quittance);
+      toast.success('Quittance générée avec succès !');
     }
   };
 
