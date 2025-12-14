@@ -17,13 +17,15 @@ export async function POST(request: NextRequest) {
     if (type === 'email') {
       const emailBody = generateEmailBody(quittance, bailleur, locataire, appartement);
       
-      console.log('Envoi email à:', to);
+      console.log('Envoi email :');
+      console.log('De (expéditeur):', bailleur.email || bailleur.nom);
+      console.log('À:', to);
       console.log('Sujet:', `Quittance de loyer - ${MOIS[quittance.mois]} ${quittance.annee}`);
       console.log('Corps:', emailBody);
 
       return NextResponse.json({ 
         success: true, 
-        message: 'Email simulé envoyé avec succès (configurez un service email pour l\'envoi réel)' 
+        message: `Email simulé envoyé de ${bailleur.nom} à ${to} (configurez un service email pour l'envoi réel)` 
       });
     } else if (type === 'sms') {
       const smsBody = generateSMSBody(quittance, bailleur, locataire);
