@@ -4,9 +4,11 @@ const users = new Map<string, { id: string; email: string; password: string; nom
 
 export async function POST(request: Request) {
   try {
-    const { email, password, nom } = await request.json();
+    const body = await request.json();
+    const { email, password, nom, bailleurName } = body;
+    const name = nom || bailleurName;
 
-    if (!email || !password || !nom) {
+    if (!email || !password || !name) {
       return NextResponse.json(
         { error: 'Email, mot de passe et nom requis' },
         { status: 400 }
@@ -21,10 +23,10 @@ export async function POST(request: Request) {
     }
 
     const userId = `user_${Date.now()}`;
-    users.set(email, { id: userId, email, password, nom });
+    users.set(email, { id: userId, email, password, nom: name });
 
     return NextResponse.json({
-      user: { id: userId, email, nom },
+      user: { id: userId, email, nom: name },
     });
   } catch (error) {
     console.error('Signup error:', error);
