@@ -21,8 +21,6 @@ const defaultData: AppData = {
   activeBailleurId: null,
 };
 
-const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
 export function useLocalStorage() {
   const { user } = useAuth();
   const [data, setData] = useState<AppData>(defaultData);
@@ -114,325 +112,318 @@ export function useLocalStorage() {
   }, []);
 
   const addBailleur = useCallback(async (bailleur: Bailleur) => {
-    if (!user) return;
+    if (!user) throw new Error('User not authenticated');
     
-    try {
-      console.log('Starting addBailleur with:', { bailleur, userId: user.id });
-      
-      const { data: inserted, error } = await supabase
-        .from('bailleurs')
-        .insert({
-          user_id: user.id,
-          nom: bailleur.nom,
-          adresse: bailleur.adresse,
-          email: bailleur.email,
-          type: bailleur.type,
-          siret: bailleur.siret,
-        })
-        .select()
-        .single();
+    const { data: inserted, error } = await supabase
+      .from('bailleurs')
+      .insert({
+        user_id: user.id,
+        nom: bailleur.nom,
+        adresse: bailleur.adresse,
+        email: bailleur.email || null,
+        type: bailleur.type,
+        siret: bailleur.siret || null,
+      })
+      .select()
+      .single();
 
-      console.log('Supabase insert result:', { inserted, error });
+    if (error) throw error;
+    if (!inserted) throw new Error('No data returned from insert');
 
-      if (error) {
-        console.error('Error adding bailleur:', error);
-        throw error;
-      }
+    const newBailleur: Bailleur = {
+      id: inserted.id,
+      nom: inserted.nom,
+      adresse: inserted.adresse,
+      email: inserted.email || undefined,
+      type: inserted.type,
+      siret: inserted.siret || undefined,
+      telephone: bailleur.telephone || '',
+    };
 
-      if (inserted) {
-        console.log('Bailleur inserted successfully, updating local state');
-        const newBailleur = {
-          id: inserted.id,
-          nom: inserted.nom,
-          adresse: inserted.adresse,
-          email: inserted.email,
-          type: inserted.type,
-          siret: inserted.siret,
-          telephone: '',
-        };
-        setData(prev => ({
-          ...prev,
-          bailleurs: [...prev.bailleurs, newBailleur],
-          activeBailleurId: prev.activeBailleurId || inserted.id,
-        }));
-        console.log('Calling loadData to refresh');
-        await loadData();
-        console.log('loadData completed');
-      }
-    } catch (error) {
-      console.error('Error in addBailleur:', error);
-      throw error;
-    }
-  }, [user, loadData]);
+    setData(prev => ({
+      ...prev,
+      bailleurs: [...prev.bailleurs, newBailleur],
+      activeBailleurId: prev.activeBailleurId || inserted.id,
+    }));
+  }, [user]);
 
   const updateBailleur = useCallback(async (bailleur: Bailleur) => {
     if (!user) return;
 
-    try {
-      await supabase
-        .from('bailleurs')
-        .update({
-          nom: bailleur.nom,
-          adresse: bailleur.adresse,
-          email: bailleur.email,
-          type: bailleur.type,
-          siret: bailleur.siret,
-        })
-        .eq('id', bailleur.id)
-        .eq('user_id', user.id);
+    const { error } = await supabase
+      .from('bailleurs')
+      .update({
+        nom: bailleur.nom,
+        adresse: bailleur.adresse,
+        email: bailleur.email || null,
+        type: bailleur.type,
+        siret: bailleur.siret || null,
+      })
+      .eq('id', bailleur.id)
+      .eq('user_id', user.id);
 
-      setData(prev => ({
-        ...prev,
-        bailleurs: prev.bailleurs.map(b => b.id === bailleur.id ? bailleur : b),
-      }));
-    } catch (error) {
-      console.error('Error updating bailleur:', error);
-    }
+    if (error) throw error;
+
+    setData(prev => ({
+      ...prev,
+      bailleurs: prev.bailleurs.map(b => b.id === bailleur.id ? bailleur : b),
+    }));
   }, [user]);
 
   const deleteBailleur = useCallback(async (id: string) => {
     if (!user) return;
 
-    try {
-      await supabase
-        .from('bailleurs')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
+    const { error } = await supabase
+      .from('bailleurs')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id);
 
-      setData(prev => ({
-        ...prev,
-        bailleurs: prev.bailleurs.filter(b => b.id !== id),
-        activeBailleurId: prev.activeBailleurId === id ? (prev.bailleurs[0]?.id || null) : prev.activeBailleurId,
-      }));
-    } catch (error) {
-      console.error('Error deleting bailleur:', error);
-    }
+    if (error) throw error;
+
+    setData(prev => ({
+      ...prev,
+      bailleurs: prev.bailleurs.filter(b => b.id !== id),
+      activeBailleurId: prev.activeBailleurId === id ? (prev.bailleurs[0]?.id || null) : prev.activeBailleurId,
+    }));
   }, [user]);
 
   const addLocataire = useCallback(async (locataire: Locataire) => {
     if (!user) return;
 
-    try {
-      const { data: inserted } = await supabase
-        .from('locataires')
-        .insert({
-          id: locataire.id,
-          user_id: user.id,
-          nom: locataire.nom,
-          adresse: locataire.adresse,
-          email: locataire.email,
-        })
-        .select()
-        .single();
+    const { data: inserted, error } = await supabase
+      .from('locataires')
+      .insert({
+        user_id: user.id,
+        nom: locataire.nom,
+        adresse: locataire.adresse,
+        email: locataire.email || null,
+      })
+      .select()
+      .single();
 
-      if (inserted) {
-        setData(prev => ({
-          ...prev,
-          locataires: [...prev.locataires, locataire],
-        }));
-      }
-    } catch (error) {
-      console.error('Error adding locataire:', error);
-    }
+    if (error) throw error;
+    if (!inserted) return;
+
+    const newLocataire: Locataire = {
+      id: inserted.id,
+      nom: inserted.nom,
+      adresse: inserted.adresse,
+      email: inserted.email || undefined,
+      telephone: locataire.telephone || '',
+    };
+
+    setData(prev => ({
+      ...prev,
+      locataires: [...prev.locataires, newLocataire],
+    }));
   }, [user]);
 
   const updateLocataire = useCallback(async (locataire: Locataire) => {
     if (!user) return;
 
-    try {
-      await supabase
-        .from('locataires')
-        .update({
-          nom: locataire.nom,
-          adresse: locataire.adresse,
-          email: locataire.email,
-        })
-        .eq('id', locataire.id)
-        .eq('user_id', user.id);
+    const { error } = await supabase
+      .from('locataires')
+      .update({
+        nom: locataire.nom,
+        adresse: locataire.adresse,
+        email: locataire.email || null,
+      })
+      .eq('id', locataire.id)
+      .eq('user_id', user.id);
 
-      setData(prev => ({
-        ...prev,
-        locataires: prev.locataires.map(l => l.id === locataire.id ? locataire : l),
-      }));
-    } catch (error) {
-      console.error('Error updating locataire:', error);
-    }
+    if (error) throw error;
+
+    setData(prev => ({
+      ...prev,
+      locataires: prev.locataires.map(l => l.id === locataire.id ? locataire : l),
+    }));
   }, [user]);
 
   const deleteLocataire = useCallback(async (id: string) => {
     if (!user) return;
 
-    try {
-      await supabase
-        .from('locataires')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
+    const { error } = await supabase
+      .from('locataires')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id);
 
-      setData(prev => ({
-        ...prev,
-        locataires: prev.locataires.filter(l => l.id !== id),
-      }));
-    } catch (error) {
-      console.error('Error deleting locataire:', error);
-    }
+    if (error) throw error;
+
+    setData(prev => ({
+      ...prev,
+      locataires: prev.locataires.filter(l => l.id !== id),
+    }));
   }, [user]);
 
   const addAppartement = useCallback(async (appartement: Appartement) => {
     if (!user) return;
 
-    try {
-      const { data: inserted } = await supabase
-        .from('appartements')
-        .insert({
-          id: appartement.id,
-          user_id: user.id,
-          bailleur_id: appartement.bailleurId,
-          adresse: appartement.adresse,
-          loyer: appartement.loyer,
-          charges: appartement.charges,
-          is_colocation: appartement.isColocation,
-          loyer_par_locataire: appartement.loyerParLocataire,
-          locataire_ids: appartement.locataireIds,
-        })
-        .select()
-        .single();
+    const { data: inserted, error } = await supabase
+      .from('appartements')
+      .insert({
+        user_id: user.id,
+        bailleur_id: appartement.bailleurId,
+        adresse: appartement.adresse,
+        loyer: appartement.loyer,
+        charges: appartement.charges,
+        is_colocation: appartement.isColocation,
+        loyer_par_locataire: appartement.loyerParLocataire || null,
+        locataire_ids: appartement.locataireIds,
+      })
+      .select()
+      .single();
 
-      if (inserted) {
-        setData(prev => ({
-          ...prev,
-          appartements: [...prev.appartements, appartement],
-        }));
-      }
-    } catch (error) {
-      console.error('Error adding appartement:', error);
-    }
+    if (error) throw error;
+    if (!inserted) return;
+
+    const newAppartement: Appartement = {
+      id: inserted.id,
+      bailleurId: inserted.bailleur_id,
+      adresse: inserted.adresse,
+      loyer: parseFloat(inserted.loyer),
+      charges: parseFloat(inserted.charges),
+      isColocation: inserted.is_colocation,
+      loyerParLocataire: inserted.loyer_par_locataire || undefined,
+      locataireIds: inserted.locataire_ids,
+      dateEntree: '',
+    };
+
+    setData(prev => ({
+      ...prev,
+      appartements: [...prev.appartements, newAppartement],
+    }));
   }, [user]);
 
   const updateAppartement = useCallback(async (appartement: Appartement) => {
     if (!user) return;
 
-    try {
-      await supabase
-        .from('appartements')
-        .update({
-          bailleur_id: appartement.bailleurId,
-          adresse: appartement.adresse,
-          loyer: appartement.loyer,
-          charges: appartement.charges,
-          is_colocation: appartement.isColocation,
-          loyer_par_locataire: appartement.loyerParLocataire,
-          locataire_ids: appartement.locataireIds,
-        })
-        .eq('id', appartement.id)
-        .eq('user_id', user.id);
+    const { error } = await supabase
+      .from('appartements')
+      .update({
+        bailleur_id: appartement.bailleurId,
+        adresse: appartement.adresse,
+        loyer: appartement.loyer,
+        charges: appartement.charges,
+        is_colocation: appartement.isColocation,
+        loyer_par_locataire: appartement.loyerParLocataire || null,
+        locataire_ids: appartement.locataireIds,
+      })
+      .eq('id', appartement.id)
+      .eq('user_id', user.id);
 
-      setData(prev => ({
-        ...prev,
-        appartements: prev.appartements.map(a => a.id === appartement.id ? appartement : a),
-      }));
-    } catch (error) {
-      console.error('Error updating appartement:', error);
-    }
+    if (error) throw error;
+
+    setData(prev => ({
+      ...prev,
+      appartements: prev.appartements.map(a => a.id === appartement.id ? appartement : a),
+    }));
   }, [user]);
 
   const deleteAppartement = useCallback(async (id: string) => {
     if (!user) return;
 
-    try {
-      await supabase
-        .from('appartements')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
+    const { error } = await supabase
+      .from('appartements')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id);
 
-      setData(prev => ({
-        ...prev,
-        appartements: prev.appartements.filter(a => a.id !== id),
-      }));
-    } catch (error) {
-      console.error('Error deleting appartement:', error);
-    }
+    if (error) throw error;
+
+    setData(prev => ({
+      ...prev,
+      appartements: prev.appartements.filter(a => a.id !== id),
+    }));
   }, [user]);
 
   const addQuittance = useCallback(async (quittance: Quittance) => {
     if (!user) return;
 
-    try {
-      const { data: inserted } = await supabase
-        .from('quittances')
-        .insert({
-          id: quittance.id,
-          user_id: user.id,
-          appartement_id: quittance.appartementId,
-          numero: quittance.numero.toString(),
-          mois: quittance.mois,
-          annee: quittance.annee,
-          montant_loyer: quittance.montantLoyer,
-          montant_charges: quittance.montantCharges,
-          montant_total: quittance.montantLoyer + quittance.montantCharges,
-          locataire_data: { locataireId: quittance.locataireId },
-        })
-        .select()
-        .single();
+    const { data: inserted, error } = await supabase
+      .from('quittances')
+      .insert({
+        user_id: user.id,
+        appartement_id: quittance.appartementId,
+        numero: quittance.numero.toString(),
+        mois: quittance.mois,
+        annee: quittance.annee,
+        montant_loyer: quittance.montantLoyer,
+        montant_charges: quittance.montantCharges,
+        montant_total: quittance.montantLoyer + quittance.montantCharges,
+        locataire_data: { locataireId: quittance.locataireId },
+      })
+      .select()
+      .single();
 
-      if (inserted) {
-        setData(prev => ({
-          ...prev,
-          quittances: [...prev.quittances, quittance],
-        }));
-      }
-    } catch (error) {
-      console.error('Error adding quittance:', error);
-    }
+    if (error) throw error;
+    if (!inserted) return;
+
+    const newQuittance: Quittance = {
+      id: inserted.id,
+      numero: parseInt(inserted.numero),
+      appartementId: inserted.appartement_id,
+      locataireId: inserted.locataire_data?.locataireId,
+      bailleurId: '',
+      mois: inserted.mois,
+      annee: inserted.annee,
+      montantLoyer: parseFloat(inserted.montant_loyer),
+      montantCharges: parseFloat(inserted.montant_charges),
+      dateCreation: new Date(inserted.created_at).toISOString(),
+      lieuEmission: '',
+      modePaiement: '',
+      datePaiement: '',
+      archived: true,
+    };
+
+    setData(prev => ({
+      ...prev,
+      quittances: [...prev.quittances, newQuittance],
+    }));
   }, [user]);
 
   const updateQuittance = useCallback(async (quittance: Quittance) => {
     if (!user) return;
 
-    try {
-      await supabase
-        .from('quittances')
-        .update({
-          appartement_id: quittance.appartementId,
-          numero: quittance.numero.toString(),
-          mois: quittance.mois,
-          annee: quittance.annee,
-          montant_loyer: quittance.montantLoyer,
-          montant_charges: quittance.montantCharges,
-          montant_total: quittance.montantLoyer + quittance.montantCharges,
-          locataire_data: { locataireId: quittance.locataireId },
-        })
-        .eq('id', quittance.id)
-        .eq('user_id', user.id);
+    const { error } = await supabase
+      .from('quittances')
+      .update({
+        appartement_id: quittance.appartementId,
+        numero: quittance.numero.toString(),
+        mois: quittance.mois,
+        annee: quittance.annee,
+        montant_loyer: quittance.montantLoyer,
+        montant_charges: quittance.montantCharges,
+        montant_total: quittance.montantLoyer + quittance.montantCharges,
+        locataire_data: { locataireId: quittance.locataireId },
+      })
+      .eq('id', quittance.id)
+      .eq('user_id', user.id);
 
-      setData(prev => ({
-        ...prev,
-        quittances: prev.quittances.map(q => q.id === quittance.id ? quittance : q),
-      }));
-    } catch (error) {
-      console.error('Error updating quittance:', error);
-    }
+    if (error) throw error;
+
+    setData(prev => ({
+      ...prev,
+      quittances: prev.quittances.map(q => q.id === quittance.id ? quittance : q),
+    }));
   }, [user]);
 
   const deleteQuittance = useCallback(async (id: string) => {
     if (!user) return;
 
-    try {
-      await supabase
-        .from('quittances')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
+    const { error } = await supabase
+      .from('quittances')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id);
 
-      setData(prev => ({
-        ...prev,
-        quittances: prev.quittances.filter(q => q.id !== id),
-      }));
-    } catch (error) {
-      console.error('Error deleting quittance:', error);
-    }
+    if (error) throw error;
+
+    setData(prev => ({
+      ...prev,
+      quittances: prev.quittances.filter(q => q.id !== id),
+    }));
   }, [user]);
 
   const getNextQuittanceNumber = useCallback((appartementId: string) => {
