@@ -6,9 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import type { Appartement, Bailleur, Locataire } from '@/lib/types';
+import type { Appartement, Bailleur, Locataire, AppartementLocataire } from '@/lib/types';
 import { generateId } from '@/lib/types';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, UserPlus } from 'lucide-react';
 import { LocataireForm } from './LocataireForm';
 
 interface AppartementFormProps {
@@ -18,9 +18,20 @@ interface AppartementFormProps {
   onSave: (appartement: Appartement) => void;
   onCancel: () => void;
   onCreateLocataire: (locataire: Locataire) => void;
+  appartementLocataires?: AppartementLocataire[];
+  onSaveAppartementLocataire?: (rel: AppartementLocataire) => void;
 }
 
-export function AppartementForm({ appartement, bailleurs, locataires, onSave, onCancel, onCreateLocataire }: AppartementFormProps) {
+export function AppartementForm({ 
+  appartement, 
+  bailleurs, 
+  locataires, 
+  onSave, 
+  onCancel, 
+  onCreateLocataire,
+  appartementLocataires = [],
+  onSaveAppartementLocataire
+}: AppartementFormProps) {
   const [form, setForm] = useState<Omit<Appartement, 'id'>>({
     adresse: appartement?.adresse || '',
     bailleurId: appartement?.bailleurId || '',
@@ -33,6 +44,13 @@ export function AppartementForm({ appartement, bailleurs, locataires, onSave, on
   });
   const [showCreateLocataire, setShowCreateLocataire] = useState(false);
   const [selectedLocataireId, setSelectedLocataireId] = useState<string>('');
+  const [showAddLocataireDialog, setShowAddLocataireDialog] = useState(false);
+  const [newLocataireRel, setNewLocataireRel] = useState({
+    locataireId: '',
+    dateEntree: new Date().toISOString().split('T')[0],
+    loyer: 0,
+    charges: 0
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,6 +132,40 @@ export function AppartementForm({ appartement, bailleurs, locataires, onSave, on
     });
   };
 
+  const handleAddLocataireToExistingAppartement = () => {
+    if (appartement?.id && newLocataireRel.locataireId && onSaveAppartementLocataire) {
+      const rel: AppartementLocataire = {
+        id: generateId(),
+        appartementId: appartement.id,
+        locataireId: newLocataireRel.locataireId,
+        dateEntree: newLocataireRel.dateEntree,
+        loyer: form.isColocation ? newLocataireRel.loyer : undefined,
+        charges: form.isColocation ? newLocataireRel.charges : undefined
+      };
+      
+      onSaveAppartementLocataire(rel);
+      
+      const newLocataireIds = [...form.locataireIds, newLocataireRel.locataireId];
+      const newForm = { ...form, locataireIds: newLocataireIds };
+      
+      if (form.isColocation) {
+        newForm.loyerParLocataire = {
+          ...form.loyerParLocataire,
+          [newLocataireRel.locataireId]: { loyer: newLocataireRel.loyer, charges: newLocataireRel.charges }
+        };
+      }
+      
+      setForm(newForm);
+      setShowAddLocataireDialog(false);
+      setNewLocataireRel({
+        locataireId: '',
+        dateEntree: new Date().toISOString().split('T')[0],
+        loyer: 0,
+        charges: 0
+      });
+    }
+  };
+
   if (showCreateLocataire) {
     return (
       <div className="space-y-4">
@@ -122,6 +174,73 @@ export function AppartementForm({ appartement, bailleurs, locataires, onSave, on
           onSave={handleCreateLocataire}
           onCancel={() => setShowCreateLocataire(false)}
         />
+      </div>
+    );
+  }
+
+  if (showAddLocataireDialog && appartement) {
+    return (
+      <div className="space-y-4">
+        <h3 className="font-semibold">Ajouter un locataire au logement</h3>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Locataire</Label>
+            <Select value={newLocataireRel.locataireId} onValueChange={(v) => setNewLocataireRel({...newLocataireRel, locataireId: v})}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner un locataire" />
+              </SelectTrigger>
+              <SelectContent>
+                {locataires.filter(l => !form.locataireIds.includes(l.id)).map((l) => (
+                  <SelectItem key={l.id} value={l.id}>{l.nom}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Date d&apos;entrée</Label>
+            <Input
+              type="date"
+              value={newLocataireRel.dateEntree}
+              onChange={(e) => setNewLocataireRel({...newLocataireRel, dateEntree: e.target.value})}
+              required
+            />
+          </div>
+
+          {form.isColocation && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Loyer (€)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={newLocataireRel.loyer}
+                  onChange={(e) => setNewLocataireRel({...newLocataireRel, loyer: parseFloat(e.target.value) || 0})}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Charges (€)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={newLocataireRel.charges}
+                  onChange={(e) => setNewLocataireRel({...newLocataireRel, charges: parseFloat(e.target.value) || 0})}
+                  required
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-4">
+            <Button type="button" onClick={handleAddLocataireToExistingAppartement} className="flex-1" disabled={!newLocataireRel.locataireId}>
+              Ajouter
+            </Button>
+            <Button type="button" variant="outline" onClick={() => setShowAddLocataireDialog(false)} className="flex-1">
+              Annuler
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -153,7 +272,21 @@ export function AppartementForm({ appartement, bailleurs, locataires, onSave, on
       </div>
 
       <div className="space-y-2">
-        <Label>Locataires (optionnel)</Label>
+        <div className="flex items-center justify-between">
+          <Label>Locataires (optionnel)</Label>
+          {appartement && (
+            <Button 
+              type="button" 
+              size="sm" 
+              variant="outline" 
+              onClick={() => setShowAddLocataireDialog(true)}
+              className="text-xs"
+            >
+              <UserPlus className="w-3 h-3 mr-1" />
+              Ajouter avec date
+            </Button>
+          )}
+        </div>
         <div className="flex gap-2">
           <Select value={selectedLocataireId} onValueChange={setSelectedLocataireId}>
             <SelectTrigger className="flex-1">
@@ -177,9 +310,17 @@ export function AppartementForm({ appartement, bailleurs, locataires, onSave, on
           <div className="space-y-2 mt-3">
             {form.locataireIds.map((id) => {
               const locataire = locataires.find(l => l.id === id);
+              const rel = appartementLocataires.find(r => r.appartementId === appartement?.id && r.locataireId === id);
               return locataire ? (
                 <div key={id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                  <span className="text-sm">{locataire.nom}</span>
+                  <div className="flex-1">
+                    <span className="text-sm font-medium">{locataire.nom}</span>
+                    {rel && (
+                      <span className="text-xs text-gray-500 ml-2">
+                        (Entrée: {new Date(rel.dateEntree).toLocaleDateString('fr-FR')})
+                      </span>
+                    )}
+                  </div>
                   <Button
                     type="button"
                     size="sm"
