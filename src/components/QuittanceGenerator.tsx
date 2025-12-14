@@ -66,10 +66,11 @@ export function QuittanceGenerator({
   const existingQuittance = useMemo(() => 
     quittances.find(q => 
       q.appartementId === selectedAppartementId && 
+      q.locataireId === selectedLocataireId &&
       q.mois === selectedMois && 
       q.annee === selectedAnnee
     ),
-    [quittances, selectedAppartementId, selectedMois, selectedAnnee]
+    [quittances, selectedAppartementId, selectedLocataireId, selectedMois, selectedAnnee]
   );
 
   const years = useMemo(() => {
