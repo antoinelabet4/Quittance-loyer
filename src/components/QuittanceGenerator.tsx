@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { QuittancePreview } from './QuittancePreview';
 import { AppartementForm } from './AppartementForm';
 import type { Quittance, Appartement, Bailleur, Locataire, ModePaiement } from '@/lib/types';
@@ -44,6 +45,8 @@ export function QuittanceGenerator({
   const [showCreateAppartement, setShowCreateAppartement] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [sendingSMS, setSendingSMS] = useState(false);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [emailRecipient, setEmailRecipient] = useState<'bailleur' | 'locataire' | ''>('');
 
   const selectedAppartement = useMemo(() => 
     appartements.find(a => a.id === selectedAppartementId),
@@ -110,31 +113,34 @@ export function QuittanceGenerator({
 
   const quittancePreview = generateQuittance();
 
-  const handleSave = () => {
-    if (quittancePreview) {
-      onSave(quittancePreview);
-      setShowPreview(false);
-    }
-  };
-
-  const handlePrint = () => {
-    window.print();
-  };
-
   const handleSendEmail = async () => {
-    if (!selectedLocataire?.email || !quittancePreview || !selectedBailleur) {
-      alert('Le locataire doit avoir une adresse email');
+    setShowEmailDialog(true);
+  };
+
+  const confirmSendEmail = async () => {
+    if (!emailRecipient || !quittancePreview || !selectedBailleur || !selectedLocataire) {
+      alert('Veuillez sélectionner un destinataire');
+      return;
+    }
+
+    const recipient = emailRecipient === 'bailleur' ? selectedBailleur : selectedLocataire;
+    const recipientEmail = recipient.email;
+
+    if (!recipientEmail) {
+      alert(`${emailRecipient === 'bailleur' ? 'Le bailleur' : 'Le locataire'} n'a pas d'adresse email`);
       return;
     }
     
     setSendingEmail(true);
+    setShowEmailDialog(false);
     try {
       const response = await fetch('/api/send-quittance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'email',
-          to: selectedLocataire.email,
+          to: recipientEmail,
+          recipient: emailRecipient,
           quittance: quittancePreview,
           bailleur: selectedBailleur,
           locataire: selectedLocataire,
@@ -143,7 +149,7 @@ export function QuittanceGenerator({
       });
       
       if (response.ok) {
-        alert('Quittance envoyée par email avec succès !');
+        alert(`Quittance envoyée à ${emailRecipient === 'bailleur' ? selectedBailleur.nom : selectedLocataire.nom} (${recipientEmail}) avec succès !`);
       } else {
         throw new Error('Erreur lors de l\'envoi');
       }
@@ -152,6 +158,7 @@ export function QuittanceGenerator({
       console.error(error);
     } finally {
       setSendingEmail(false);
+      setEmailRecipient('');
     }
   };
 
@@ -383,16 +390,14 @@ export function QuittanceGenerator({
               <Download className="w-4 h-4 mr-2" />
               Imprimer / PDF
             </Button>
-            {selectedLocataire?.email && (
-              <Button 
-                onClick={handleSendEmail} 
-                variant="outline"
-                disabled={sendingEmail}
-              >
-                <Mail className="w-4 h-4 mr-2" />
-                {sendingEmail ? 'Envoi...' : 'Envoyer par email'}
-              </Button>
-            )}
+            <Button 
+              onClick={handleSendEmail} 
+              variant="outline"
+              disabled={sendingEmail}
+            >
+              <Mail className="w-4 h-4 mr-2" />
+              {sendingEmail ? 'Envoi...' : 'Envoyer par email'}
+            </Button>
             {selectedLocataire?.telephone && (
               <Button 
                 onClick={handleSendSMS} 
@@ -415,6 +420,58 @@ export function QuittanceGenerator({
               />
             </div>
           )}
+
+          <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Envoyer la quittance par email</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <p className="text-sm text-gray-600">À qui souhaitez-vous envoyer la quittance ?</p>
+                <div className="space-y-3">
+                  <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      name="recipient"
+                      value="locataire"
+                      checked={emailRecipient === 'locataire'}
+                      onChange={(e) => setEmailRecipient(e.target.value as 'locataire')}
+                      className="w-4 h-4"
+                    />
+                    <div className="flex-1">
+                      <p className="font-medium">Locataire</p>
+                      <p className="text-sm text-gray-600">{selectedLocataire?.nom}</p>
+                      <p className="text-xs text-gray-500">{selectedLocataire?.email || 'Pas d\'email'}</p>
+                    </div>
+                  </label>
+                  <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      name="recipient"
+                      value="bailleur"
+                      checked={emailRecipient === 'bailleur'}
+                      onChange={(e) => setEmailRecipient(e.target.value as 'bailleur')}
+                      className="w-4 h-4"
+                    />
+                    <div className="flex-1">
+                      <p className="font-medium">Bailleur (copie)</p>
+                      <p className="text-sm text-gray-600">{selectedBailleur?.nom}</p>
+                      <p className="text-xs text-gray-500">{selectedBailleur?.email || 'Pas d\'email'}</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => { setShowEmailDialog(false); setEmailRecipient(''); }}>
+                  Annuler
+                </Button>
+                <Button onClick={confirmSendEmail} disabled={!emailRecipient}>
+                  <Mail className="w-4 h-4 mr-2" />
+                  Envoyer
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       )}
     </div>
