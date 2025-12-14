@@ -265,7 +265,7 @@ ${selectedBailleur.nom}`;
       const imgData = canvas.toDataURL('image/jpeg', 0.98);
       pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
 
-      const moisFormate = String(quittancePreview.mois).padStart(2, '0');
+      const moisFormate = String(quittancePreview.mois + 1).padStart(2, '0');
       const anneeFormate = String(quittancePreview.annee).slice(-2);
       const locataireNom = selectedLocataire.nom.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
       
@@ -349,10 +349,10 @@ ${selectedBailleur.nom}`;
           locataires={locataires}
           onSave={handleCreateAppartement}
           onCancel={() => setShowCreateAppartement(false)}
-          onCreateLocataire={onCreateLocataire} />
-
-      </div>);
-
+          onCreateLocataire={onCreateLocataire}
+        />
+      </div>
+    );
   }
 
   if (appartements.length === 0) {
@@ -365,8 +365,8 @@ ${selectedBailleur.nom}`;
           <Plus className="w-4 h-4 mr-2" />
           Créer un logement
         </Button>
-      </div>);
-
+      </div>
+    );
   }
 
   return (
@@ -378,141 +378,141 @@ ${selectedBailleur.nom}`;
               <Label>Appartement</Label>
               <div className="flex gap-2">
                 <Select value={selectedAppartementId} onValueChange={(id) => {
-                setSelectedAppartementId(id);
-                const appt = appartements.find((a) => a.id === id);
-                if (appt && appt.locataireIds.length > 0) {
-                  setSelectedLocataireId(appt.locataireIds[0]);
-                }
-              }}>
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Sélectionner un appartement" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {appartements.map((a) => {
-                      const locataireNames = a.locataireIds.
-                      map((id) => locataires.find((l) => l.id === id)?.nom).
-                      filter(Boolean).
-                      join(', ');
-                      return (
-                        <SelectItem key={a.id} value={a.id}>
-                            {a.adresse} ({locataireNames || 'Sans locataire'})
-                          </SelectItem>);
-
-                    })}
-                    </SelectContent>
-                  </Select>
-                  <Button type="button" size="sm" variant="outline" onClick={() => setShowCreateAppartement(true)}>
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="space-y-2 md:ml-auto md:w-[244px]">
-                <Label>Locataire</Label>
-                <Select
-                value={selectedLocataireId}
-                onValueChange={setSelectedLocataireId}
-                disabled={!selectedAppartement}>
-
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un locataire" />
+                  setSelectedAppartementId(id);
+                  const appt = appartements.find((a) => a.id === id);
+                  if (appt && appt.locataireIds.length > 0) {
+                    setSelectedLocataireId(appt.locataireIds[0]);
+                  }
+                }}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Sélectionner un appartement" />
                   </SelectTrigger>
                   <SelectContent>
-                    {selectedAppartement?.locataireIds.map((id) => {
-                    const loc = locataires.find((l) => l.id === id);
-                    return loc ?
-                    <SelectItem key={id} value={id}>{loc.nom}</SelectItem> :
-                    null;
-                  })}
+                    {appartements.map((a) => {
+                      const locataireNames = a.locataireIds
+                        .map((id) => locataires.find((l) => l.id === id)?.nom)
+                        .filter(Boolean)
+                        .join(', ');
+                      return (
+                        <SelectItem key={a.id} value={a.id}>
+                          {a.adresse} ({locataireNames || 'Sans locataire'})
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
+                <Button type="button" size="sm" variant="outline" onClick={() => setShowCreateAppartement(true)}>
+                  <Plus className="w-4 h-4" />
+                </Button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Mois</Label>
-                  <Select value={selectedMois.toString()} onValueChange={(v) => setSelectedMois(parseInt(v))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MOIS.map((mois, index) =>
-                    <SelectItem key={index} value={index.toString()}>{mois}</SelectItem>
-                    )}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Année</Label>
-                  <Select value={selectedAnnee.toString()} onValueChange={(v) => setSelectedAnnee(parseInt(v))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {years.map((year) =>
-                    <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                    )}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Date de paiement</Label>
-                <Input
-                type="date"
-                value={datePaiement}
-                onChange={(e) => setDatePaiement(e.target.value)} />
-
-              </div>
+            <div className="space-y-2 md:ml-auto md:w-[244px]">
+              <Label>Locataire</Label>
+              <Select
+                value={selectedLocataireId}
+                onValueChange={setSelectedLocataireId}
+                disabled={!selectedAppartement}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un locataire" />
+                </SelectTrigger>
+                <SelectContent>
+                  {selectedAppartement?.locataireIds.map((id) => {
+                    const loc = locataires.find((l) => l.id === id);
+                    return loc ? (
+                      <SelectItem key={id} value={id}>{loc.nom}</SelectItem>
+                    ) : null;
+                  })}
+                </SelectContent>
+              </Select>
             </div>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Lieu d&apos;émission</Label>
-                <Input
-                value={lieuEmission}
-                onChange={(e) => setLieuEmission(e.target.value)}
-                placeholder="Paris" />
-
-              </div>
-              <div className="space-y-2">
-                <Label>Mode de paiement</Label>
-                <Select value={modePaiement} onValueChange={(v) => setModePaiement(v as ModePaiement)}>
+                <Label>Mois</Label>
+                <Select value={selectedMois.toString()} onValueChange={(v) => setSelectedMois(parseInt(v))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="virement">Virement bancaire</SelectItem>
-                    <SelectItem value="cheque">Chèque</SelectItem>
-                    <SelectItem value="especes">Espèces</SelectItem>
-                    <SelectItem value="prelevement">Prélèvement automatique</SelectItem>
-                    <SelectItem value="autre">Autre</SelectItem>
+                    {MOIS.map((mois, index) => (
+                      <SelectItem key={index} value={index.toString()}>{mois}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Année</Label>
+                <Select value={selectedAnnee.toString()} onValueChange={(v) => setSelectedAnnee(parseInt(v))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {years.map((year) => (
+                      <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            {existingQuittance &&
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-amber-800">
+            <div className="space-y-2">
+              <Label>Date de paiement</Label>
+              <Input
+                type="date"
+                value={datePaiement}
+                onChange={(e) => setDatePaiement(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label>Lieu d&apos;émission</Label>
+              <Input
+                value={lieuEmission}
+                onChange={(e) => setLieuEmission(e.target.value)}
+                placeholder="Paris"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Mode de paiement</Label>
+              <Select value={modePaiement} onValueChange={(v) => setModePaiement(v as ModePaiement)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="virement">Virement bancaire</SelectItem>
+                  <SelectItem value="cheque">Chèque</SelectItem>
+                  <SelectItem value="especes">Espèces</SelectItem>
+                  <SelectItem value="prelevement">Prélèvement automatique</SelectItem>
+                  <SelectItem value="autre">Autre</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {existingQuittance && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-amber-800">
               Une quittance existe déjà pour ce locataire pour {MOIS[selectedMois]} {selectedAnnee}. 
               Elle sera mise à jour.
             </div>
-          }
+          )}
 
-            <Button
+          <Button
             onClick={() => setShowPreview(true)}
             className="w-full"
-            disabled={!selectedAppartementId || !selectedLocataireId || !lieuEmission}>
-
-              <FileText className="w-4 h-4 mr-2" />
-              Aperçu de la quittance
-            </Button>
-          </div> :
-
-      <div className="space-y-6">
+            disabled={!selectedAppartementId || !selectedLocataireId || !lieuEmission}
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Aperçu de la quittance
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-6">
           <div className="flex gap-4 print:hidden flex-wrap">
             <Button onClick={() => setShowPreview(false)} variant="outline">
               Retour
@@ -571,24 +571,24 @@ ${selectedBailleur.nom}`;
                 <div className="space-y-2">
                   <Label htmlFor="email-to">À (destinataire - locataire)</Label>
                   <Input
-                  id="email-to"
-                  type="email"
-                  value={emailTo}
-                  onChange={(e) => setEmailTo(e.target.value)}
-                  placeholder="locataire@exemple.fr" />
-
+                    id="email-to"
+                    type="email"
+                    value={emailTo}
+                    onChange={(e) => setEmailTo(e.target.value)}
+                    placeholder="locataire@exemple.fr"
+                  />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="email-body">Message</Label>
                   <textarea
-                  id="email-body"
-                  value={emailBody}
-                  onChange={(e) => setEmailBody(e.target.value)}
-                  rows={12}
-                  className="w-full px-3 py-2 border rounded-md resize-none font-mono text-sm"
-                  placeholder="Contenu du message..." />
-
+                    id="email-body"
+                    value={emailBody}
+                    onChange={(e) => setEmailBody(e.target.value)}
+                    rows={12}
+                    className="w-full px-3 py-2 border rounded-md resize-none font-mono text-sm"
+                    placeholder="Contenu du message..."
+                  />
                 </div>
               </div>
               <DialogFooter>
