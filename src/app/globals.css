@@ -1,4 +1,5 @@
 /* Updated: 2025-12-14T06:15:49.343Z */
+@import url('https://fonts.googleapis.com/css2?family=Marianne:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -119,5 +120,22 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Marianne', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #quittance-pdf,
+  #quittance-pdf * {
+    visibility: visible;
+  }
+  #quittance-pdf {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
   }
 }
