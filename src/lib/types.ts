@@ -21,8 +21,10 @@ export interface Appartement {
   adresse: string;
   bailleurId: string;
   locataireIds: string[];
+  isColocation: boolean;
   loyer: number;
   charges: number;
+  loyerParLocataire?: { [locataireId: string]: { loyer: number; charges: number } };
   dateEntree: string;
 }
 
@@ -30,6 +32,7 @@ export interface Quittance {
   id: string;
   numero: number;
   appartementId: string;
+  locataireId: string;
   mois: number;
   annee: number;
   dateDebut: string;
