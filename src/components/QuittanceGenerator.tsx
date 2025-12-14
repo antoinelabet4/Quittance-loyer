@@ -45,8 +45,6 @@ export function QuittanceGenerator({
   const [showCreateAppartement, setShowCreateAppartement] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [sendingSMS, setSendingSMS] = useState(false);
-  const [showEmailDialog, setShowEmailDialog] = useState(false);
-  const [emailRecipient, setEmailRecipient] = useState<'bailleur' | 'locataire' | ''>('');
   const [showEmailComposer, setShowEmailComposer] = useState(false);
   const [emailFrom, setEmailFrom] = useState('');
   const [emailTo, setEmailTo] = useState('');
@@ -494,62 +492,10 @@ ${selectedBailleur.nom}`;
             </div>
           )}
 
-          <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Envoyer la quittance par email</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <p className="text-sm text-gray-600">À qui souhaitez-vous envoyer la quittance ?</p>
-                <div className="space-y-3">
-                  <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                    <input
-                      type="radio"
-                      name="recipient"
-                      value="locataire"
-                      checked={emailRecipient === 'locataire'}
-                      onChange={(e) => setEmailRecipient(e.target.value as 'locataire')}
-                      className="w-4 h-4"
-                    />
-                    <div className="flex-1">
-                      <p className="font-medium">Locataire</p>
-                      <p className="text-sm text-gray-600">{selectedLocataire?.nom}</p>
-                      <p className="text-xs text-gray-500">{selectedLocataire?.email || 'Pas d\'email'}</p>
-                    </div>
-                  </label>
-                  <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                    <input
-                      type="radio"
-                      name="recipient"
-                      value="bailleur"
-                      checked={emailRecipient === 'bailleur'}
-                      onChange={(e) => setEmailRecipient(e.target.value as 'bailleur')}
-                      className="w-4 h-4"
-                    />
-                    <div className="flex-1">
-                      <p className="font-medium">Bailleur (copie)</p>
-                      <p className="text-sm text-gray-600">{selectedBailleur?.nom}</p>
-                      <p className="text-xs text-gray-500">{selectedBailleur?.email || 'Pas d\'email'}</p>
-                    </div>
-                  </label>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => { setShowEmailDialog(false); setEmailRecipient(''); }}>
-                  Annuler
-                </Button>
-                <Button onClick={confirmSendEmail} disabled={!emailRecipient}>
-                  <Mail className="w-4 h-4 mr-2" />
-                  Envoyer
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
           <Dialog open={showEmailComposer} onOpenChange={setShowEmailComposer}>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>Composer l'email</DialogTitle>
+                <DialogTitle>Composer l&apos;email</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
@@ -562,7 +508,7 @@ ${selectedBailleur.nom}`;
                     placeholder="contact@exemple.fr"
                   />
                   <p className="text-xs text-gray-500">
-                    ⚠️ Pour utiliser votre email, vérifiez d'abord votre domaine sur Resend
+                    ⚠️ Pour utiliser votre email, vérifiez d&apos;abord votre domaine sur Resend
                   </p>
                 </div>
                 
