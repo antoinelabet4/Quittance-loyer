@@ -79,14 +79,22 @@ export function Dashboard() {
     return appt?.bailleurId === activeBailleurId;
   });
 
-  const handleSaveBailleur = (bailleur: Bailleur) => {
-    if (editingBailleur) {
-      updateBailleur(bailleur);
-    } else {
-      addBailleur(bailleur);
+  const handleSaveBailleur = async (bailleur: Bailleur) => {
+    try {
+      if (editingBailleur) {
+        await updateBailleur(bailleur);
+      } else {
+        await addBailleur(bailleur);
+        if (!activeBailleurId) {
+          setActiveBailleur(bailleur.id);
+        }
+      }
+      setShowBailleurForm(false);
+      setEditingBailleur(null);
+    } catch (error) {
+      console.error('Error saving bailleur:', error);
+      alert('Erreur lors de la sauvegarde du bailleur. Veuillez réessayer.');
     }
-    setShowBailleurForm(false);
-    setEditingBailleur(null);
   };
 
   const handleSaveLocataire = (locataire: Locataire) => {
