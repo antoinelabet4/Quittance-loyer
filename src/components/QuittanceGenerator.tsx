@@ -497,22 +497,14 @@ ${selectedBailleur.nom}`;
                 <DialogTitle>Composer l&apos;email</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email-from">De (expéditeur)</Label>
-                  <Input
-                    id="email-from"
-                    type="email"
-                    value={emailFrom}
-                    onChange={(e) => setEmailFrom(e.target.value)}
-                    placeholder="contact@exemple.fr"
-                  />
-                  <p className="text-xs text-gray-500">
-                    ⚠️ Pour utiliser votre email, vérifiez d&apos;abord votre domaine sur Resend
-                  </p>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+                  📧 L&apos;email sera envoyé depuis <strong>onboarding@resend.dev</strong> au nom de <strong>{selectedBailleur?.nom}</strong>
+                  <br />
+                  Une copie sera automatiquement envoyée au bailleur ({selectedBailleur?.email})
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="email-to">À (destinataire)</Label>
+                  <Label htmlFor="email-to">À (destinataire - locataire)</Label>
                   <Input
                     id="email-to"
                     type="email"
@@ -538,7 +530,7 @@ ${selectedBailleur.nom}`;
                 <Button variant="outline" onClick={() => setShowEmailComposer(false)}>
                   Annuler
                 </Button>
-                <Button onClick={confirmSendEmail} disabled={!emailTo || !emailFrom || !emailBody}>
+                <Button onClick={confirmSendEmail} disabled={!emailTo || !emailBody}>
                   <Mail className="w-4 h-4 mr-2" />
                   Envoyer
                 </Button>
