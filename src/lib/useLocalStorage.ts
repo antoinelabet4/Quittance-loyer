@@ -46,6 +46,10 @@ export function useLocalStorage() {
         const user = JSON.parse(userStored);
         if (user.email === 'antoinelabet@gmail.com' && parsedData.bailleurs.length === 0 && !parsedData.initializedForUser) {
           const bailleurId = generateId();
+          const locataire1Id = generateId();
+          const locataire2Id = generateId();
+          const appartementId = generateId();
+          
           parsedData = {
             ...parsedData,
             bailleurs: [{
@@ -53,10 +57,38 @@ export function useLocalStorage() {
               nom: 'Labet Conseil',
               adresse: '60, rue Jean Jaurès, 78190, Trappes',
               type: 'societe',
-              siret: '',
+              siret: '12345678900012',
               email: 'antoinelabet@gmail.com',
-              telephone: '',
+              telephone: '0601020304',
             }],
+            locataires: [
+              {
+                id: locataire1Id,
+                nom: 'Martin Dupont',
+                adresse: '15, Avenue de la République, 78190, Trappes',
+                email: 'martin.dupont@email.com',
+                telephone: '0612345678',
+              },
+              {
+                id: locataire2Id,
+                nom: 'Sophie Bernard',
+                adresse: '22, Rue des Fleurs, 78190, Trappes',
+                email: 'sophie.bernard@email.com',
+                telephone: '0698765432',
+              }
+            ],
+            appartements: [
+              {
+                id: appartementId,
+                adresse: '15, Avenue de la République, Appartement 3B, 78190, Trappes',
+                bailleurId: bailleurId,
+                locataireIds: [locataire1Id],
+                isColocation: false,
+                loyer: 850,
+                charges: 100,
+                dateEntree: '2024-01-01',
+              }
+            ],
             activeBailleurId: bailleurId,
             initializedForUser: user.email,
           };
