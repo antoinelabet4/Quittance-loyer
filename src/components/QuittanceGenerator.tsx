@@ -49,6 +49,7 @@ export function QuittanceGenerator({
   const [emailFrom, setEmailFrom] = useState('');
   const [emailTo, setEmailTo] = useState('');
   const [emailBody, setEmailBody] = useState('');
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
 
   const selectedAppartement = useMemo(() =>
   appartements.find((a) => a.id === selectedAppartementId),
@@ -212,8 +213,72 @@ ${selectedBailleur.nom}`;
     }
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handlePrint = async () => {
+    if (!quittancePreview || !selectedBailleur || !selectedLocataire || !selectedAppartement) return;
+
+    setDownloadingPDF(true);
+    
+    try {
+      const jsPDF = (await import('jspdf')).default;
+      const html2canvas = (await import('html2canvas')).default;
+
+      const tempDiv = document.createElement('div');
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      tempDiv.style.width = '210mm';
+      tempDiv.style.backgroundColor = 'white';
+      document.body.appendChild(tempDiv);
+
+      const { createRoot } = await import('react-dom/client');
+      const root = createRoot(tempDiv);
+      
+      await new Promise<void>((resolve) => {
+        root.render(
+          <div id="temp-quittance">
+            <QuittancePreview
+              quittance={quittancePreview}
+              bailleur={selectedBailleur}
+              locataire={selectedLocataire}
+              appartement={selectedAppartement}
+            />
+          </div>
+        );
+        setTimeout(resolve, 500);
+      });
+
+      const element = tempDiv.querySelector('#temp-quittance') as HTMLElement;
+      if (!element) {
+        throw new Error('Élément introuvable');
+      }
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+
+      const imgWidth = 210;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const imgData = canvas.toDataURL('image/jpeg', 0.98);
+      pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+
+      const moisFormate = String(quittancePreview.mois).padStart(2, '0');
+      const anneeFormate = String(quittancePreview.annee).slice(-2);
+      const locataireNom = selectedLocataire.nom.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
+      
+      pdf.save(`quittance_${locataireNom}_${moisFormate}_${anneeFormate}.pdf`);
+
+      root.unmount();
+      document.body.removeChild(tempDiv);
+    } catch (error) {
+      console.error('Erreur lors du téléchargement PDF:', error);
+      alert('Erreur lors de la génération du PDF');
+    } finally {
+      setDownloadingPDF(false);
+    }
   };
 
   const handleSendSMS = async () => {
@@ -306,8 +371,8 @@ ${selectedBailleur.nom}`;
 
   return (
     <div className="space-y-6">
-      {!showPreview ?
-      <div className="space-y-6">
+      {!showPreview ? (
+        <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label>Appartement</Label>
@@ -456,40 +521,40 @@ ${selectedBailleur.nom}`;
               <Save className="w-4 h-4 mr-2" />
               Sauvegarder
             </Button>
-            <Button onClick={handlePrint} variant="secondary">
+            <Button onClick={handlePrint} variant="secondary" disabled={downloadingPDF}>
               <Download className="w-4 h-4 mr-2" />
-              Imprimer / PDF
+              {downloadingPDF ? 'Génération...' : 'Télécharger PDF'}
             </Button>
             <Button
-            onClick={handleSendEmail}
-            variant="outline"
-            disabled={sendingEmail}>
-
+              onClick={handleSendEmail}
+              variant="outline"
+              disabled={sendingEmail}
+            >
               <Mail className="w-4 h-4 mr-2" />
               {sendingEmail ? 'Envoi...' : 'Envoyer par email'}
             </Button>
-            {selectedLocataire?.telephone &&
-          <Button
-            onClick={handleSendSMS}
-            variant="outline"
-            disabled={sendingSMS}>
-
+            {selectedLocataire?.telephone && (
+              <Button
+                onClick={handleSendSMS}
+                variant="outline"
+                disabled={sendingSMS}
+              >
                 <MessageSquare className="w-4 h-4 mr-2" />
                 {sendingSMS ? 'Envoi...' : 'Envoyer par SMS'}
               </Button>
-          }
+            )}
           </div>
 
-          {quittancePreview && selectedBailleur && selectedLocataire && selectedAppartement &&
-        <div className="border rounded-lg overflow-hidden shadow-lg">
+          {quittancePreview && selectedBailleur && selectedLocataire && selectedAppartement && (
+            <div className="border rounded-lg overflow-hidden shadow-lg">
               <QuittancePreview
-            quittance={quittancePreview}
-            bailleur={selectedBailleur}
-            locataire={selectedLocataire}
-            appartement={selectedAppartement} />
-
+                quittance={quittancePreview}
+                bailleur={selectedBailleur}
+                locataire={selectedLocataire}
+                appartement={selectedAppartement}
+              />
             </div>
-        }
+          )}
 
           <Dialog open={showEmailComposer} onOpenChange={setShowEmailComposer}>
             <DialogContent className="max-w-2xl">
@@ -538,7 +603,7 @@ ${selectedBailleur.nom}`;
             </DialogContent>
           </Dialog>
         </div>
-      }
-    </div>);
-
+      )}
+    </div>
+  );
 }
