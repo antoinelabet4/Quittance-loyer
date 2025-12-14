@@ -3,13 +3,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabase';
 import { useAuth } from '@/contexts/AuthContext';
-import type { Bailleur, Locataire, Appartement, Quittance } from './types';
+import type { Bailleur, Locataire, Appartement, Quittance, AppartementLocataire } from './types';
 
 interface AppData {
   bailleurs: Bailleur[];
   locataires: Locataire[];
   appartements: Appartement[];
   quittances: Quittance[];
+  appartementLocataires: AppartementLocataire[];
   activeBailleurId: string | null;
 }
 
@@ -18,6 +19,7 @@ const defaultData: AppData = {
   locataires: [],
   appartements: [],
   quittances: [],
+  appartementLocataires: [],
   activeBailleurId: null,
 };
 
@@ -34,11 +36,12 @@ export function useLocalStorage() {
     }
 
     try {
-      const [bailleursRes, locatairesRes, appartementsRes, quittancesRes] = await Promise.all([
+      const [bailleursRes, locatairesRes, appartementsRes, quittancesRes, appartLocRes] = await Promise.all([
         supabase.from('bailleurs').select('*').eq('user_id', user.id),
         supabase.from('locataires').select('*').eq('user_id', user.id),
         supabase.from('appartements').select('*').eq('user_id', user.id),
         supabase.from('quittances').select('*').eq('user_id', user.id),
+        supabase.from('appartement_locataires').select('*'),
       ]);
 
       const bailleurs = (bailleursRes.data || []).map(b => ({
@@ -71,6 +74,16 @@ export function useLocalStorage() {
         dateEntree: '',
       }));
 
+      const appartementLocataires = (appartLocRes.data || []).map(al => ({
+        id: al.id,
+        appartementId: al.appartement_id,
+        locataireId: al.locataire_id,
+        dateEntree: al.date_entree,
+        dateSortie: al.date_sortie || undefined,
+        loyer: al.loyer ? parseFloat(al.loyer) : undefined,
+        charges: al.charges ? parseFloat(al.charges) : undefined,
+      }));
+
       const quittances = (quittancesRes.data || []).map(q => ({
         id: q.id,
         numero: parseInt(q.numero),
@@ -93,6 +106,7 @@ export function useLocalStorage() {
         locataires,
         appartements,
         quittances,
+        appartementLocataires,
         activeBailleurId: bailleurs.length > 0 ? bailleurs[0].id : null,
       });
     } catch (error) {
@@ -431,6 +445,57 @@ export function useLocalStorage() {
     return apptQuittances.length > 0 ? Math.max(...apptQuittances.map(q => q.numero)) + 1 : 1;
   }, [data.quittances]);
 
+  const addAppartementLocataire = useCallback(async (rel: AppartementLocataire) => {
+    if (!user) return;
+
+    const { data: inserted, error } = await supabase
+      .from('appartement_locataires')
+      .insert({
+        appartement_id: rel.appartementId,
+        locataire_id: rel.locataireId,
+        date_entree: rel.dateEntree,
+        date_sortie: rel.dateSortie || null,
+        loyer: rel.loyer || null,
+        charges: rel.charges || null,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    if (!inserted) return;
+
+    const newRel: AppartementLocataire = {
+      id: inserted.id,
+      appartementId: inserted.appartement_id,
+      locataireId: inserted.locataire_id,
+      dateEntree: inserted.date_entree,
+      dateSortie: inserted.date_sortie || undefined,
+      loyer: inserted.loyer ? parseFloat(inserted.loyer) : undefined,
+      charges: inserted.charges ? parseFloat(inserted.charges) : undefined,
+    };
+
+    setData(prev => ({
+      ...prev,
+      appartementLocataires: [...prev.appartementLocataires, newRel],
+    }));
+  }, [user]);
+
+  const deleteAppartementLocataire = useCallback(async (id: string) => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('appartement_locataires')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    setData(prev => ({
+      ...prev,
+      appartementLocataires: prev.appartementLocataires.filter(al => al.id !== id),
+    }));
+  }, [user]);
+
   return {
     ...data,
     isLoaded,
@@ -448,5 +513,7 @@ export function useLocalStorage() {
     updateQuittance,
     deleteQuittance,
     getNextQuittanceNumber,
+    addAppartementLocataire,
+    deleteAppartementLocataire,
   };
 }
