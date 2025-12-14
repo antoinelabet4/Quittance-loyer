@@ -8,6 +8,7 @@ import { QuittancePreview } from './QuittancePreview';
 import type { Quittance, Appartement, Bailleur, Locataire } from '@/lib/types';
 import { MOIS, formatMoney } from '@/lib/types';
 import { FileText, Trash2, Eye, Calendar, Home, Download } from 'lucide-react';
+import { generateQuittancePDF } from '@/lib/pdf-utils';
 
 interface QuittanceArchiveProps {
   quittances: Quittance[];
@@ -58,60 +59,7 @@ export function QuittanceArchive({
     setDownloading(quittance.id);
     
     try {
-      const jsPDF = (await import('jspdf')).default;
-      const html2canvas = (await import('html2canvas')).default;
-
-      const tempDiv = document.createElement('div');
-      tempDiv.style.position = 'absolute';
-      tempDiv.style.left = '-9999px';
-      tempDiv.style.width = '210mm';
-      tempDiv.style.backgroundColor = 'white';
-      document.body.appendChild(tempDiv);
-
-      const { createRoot } = await import('react-dom/client');
-      const root = createRoot(tempDiv);
-      
-      await new Promise<void>((resolve) => {
-        root.render(
-          <div id="temp-quittance">
-            <QuittancePreview
-              quittance={quittance}
-              bailleur={bailleur}
-              locataire={locataire}
-              appartement={appartement}
-            />
-          </div>
-        );
-        setTimeout(resolve, 500);
-      });
-
-      const element = tempDiv.querySelector('#temp-quittance') as HTMLElement;
-      if (!element) {
-        throw new Error('Élément introuvable');
-      }
-
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff'
-      });
-
-      const imgWidth = 210;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      
-      const imgData = canvas.toDataURL('image/jpeg', 0.98);
-      pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
-
-      const moisFormate = String(quittance.mois).padStart(2, '0');
-      const anneeFormate = String(quittance.annee).slice(-2);
-      const locataireNom = locataire.nom.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
-      
-      pdf.save(`quittance_${locataireNom}_${moisFormate}_${anneeFormate}.pdf`);
-
-      root.unmount();
-      document.body.removeChild(tempDiv);
+      await generateQuittancePDF(quittance, bailleur, locataire, appartement);
     } catch (error) {
       console.error('Erreur lors du téléchargement PDF:', error);
       alert('Erreur lors de la génération du PDF');
