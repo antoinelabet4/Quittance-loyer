@@ -20,7 +20,7 @@ export interface Appartement {
   id: string;
   adresse: string;
   bailleurId: string;
-  locataireId: string;
+  locataireIds: string[];
   loyer: number;
   charges: number;
   dateEntree: string;
