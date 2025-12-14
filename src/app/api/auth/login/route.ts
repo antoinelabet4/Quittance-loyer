@@ -1,7 +1,26 @@
 import { NextResponse } from 'next/server';
 
+function initializeDefaultUser() {
+  if (typeof window === 'undefined') {
+    if (!global.usersStore) {
+      global.usersStore = {};
+    }
+    
+    if (!global.usersStore['antoinelabet@gmail.com']) {
+      global.usersStore['antoinelabet@gmail.com'] = {
+        id: 'user_antoine_labet',
+        email: 'antoinelabet@gmail.com',
+        password: 'password123',
+        nom: 'Labet Conseil',
+      };
+    }
+  }
+}
+
 export async function POST(request: Request) {
   try {
+    initializeDefaultUser();
+    
     const { email, password } = await request.json();
 
     if (!email || !password) {
