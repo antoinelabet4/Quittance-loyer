@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLocalStorage } from '@/lib/useLocalStorage';
+import { useAuth } from '@/contexts/AuthContext';
 import { BailleurForm } from './BailleurForm';
 import { LocataireForm } from './LocataireForm';
 import { AppartementForm } from './AppartementForm';
@@ -22,10 +23,13 @@ import {
   Home, 
   FileText, 
   Archive,
-  User
+  User,
+  LogOut
 } from 'lucide-react';
 
 export function Dashboard() {
+  const { user, logout } = useAuth();
+
   const {
     isLoaded,
     bailleurs,
@@ -132,7 +136,19 @@ export function Dashboard() {
             
             {bailleurs.length > 0 && (
               <div className="flex items-center gap-3">
-                <User className="w-5 h-5" />
+                <div className="flex items-center gap-2 text-sm">
+                  <User className="w-4 h-4" />
+                  <span>{user?.email}</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={logout}
+                  className="text-white hover:bg-white/10"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Déconnexion
+                </Button>
                 <Select value={activeBailleurId || ''} onValueChange={setActiveBailleur}>
                   <SelectTrigger className="w-[200px] bg-white/10 border-white/20 text-white">
                     <SelectValue placeholder="Sélectionner un bailleur" />
