@@ -51,7 +51,7 @@ export function useLocalStorage() {
             bailleurs: [{
               id: bailleurId,
               nom: 'Labet Conseil',
-              adresse: '123 Rue de la République, 75001 Paris',
+              adresse: '60, rue Jean Jaurès, 78190, Trappes',
               type: 'societe',
               siret: '',
               email: 'antoinelabet@gmail.com',
