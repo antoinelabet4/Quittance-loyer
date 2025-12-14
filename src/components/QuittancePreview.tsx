@@ -18,7 +18,7 @@ export function QuittancePreview({ quittance, bailleur, locataire, appartement }
     : `${totalEnLettres} euros`;
 
   return (
-    <div id="quittance-pdf" className="bg-white text-[#1a1a2e] p-8 max-w-[210mm] mx-auto font-serif text-sm leading-relaxed">
+    <div id="quittance-pdf" className="bg-white text-[#1a1a2e] p-8 w-full mx-auto font-serif text-sm leading-relaxed">
       <p className="italic text-center mb-6 text-xs leading-5">
         La présente quittance de loyer est établie conformément aux dispositions des articles 21 et 21-2 de la loi n°89-462 du 6 juillet 1989, tendant à améliorer les rapports locatifs, ainsi qu&apos;aux articles 1714 et suivants du Code civil relatifs aux baux d&apos;habitation. Elle atteste du paiement intégral du loyer et des charges pour la période indiquée, et décharge le locataire de toute obligation de ce chef pour ladite période.
       </p>
