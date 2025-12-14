@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { QuittancePreview } from './QuittancePreview';
 import type { Quittance, Appartement, Bailleur, Locataire } from '@/lib/types';
 import { MOIS, formatMoney } from '@/lib/types';
-import { FileText, Trash2, Eye, Calendar, Home } from 'lucide-react';
+import { FileText, Trash2, Eye, Calendar, Home, Download } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
 
 interface QuittanceArchiveProps {
   quittances: Quittance[];
@@ -27,6 +28,7 @@ export function QuittanceArchive({
   const [filterAppartement, setFilterAppartement] = useState<string>('all');
   const [filterAnnee, setFilterAnnee] = useState<string>('all');
   const [viewingQuittance, setViewingQuittance] = useState<Quittance | null>(null);
+  const [downloading, setDownloading] = useState<string | null>(null);
 
   const years = useMemo(() => {
     const allYears = [...new Set(quittances.map(q => q.annee))];
@@ -48,6 +50,42 @@ export function QuittanceArchive({
     const bailleur = appartement ? bailleurs.find(b => b.id === appartement.bailleurId) : null;
     const locataire = locataires.find(l => l.id === quittance.locataireId);
     return { appartement, bailleur, locataire };
+  };
+
+  const handleDownloadPDF = async (quittance: Quittance) => {
+    const { appartement, bailleur, locataire } = getQuittanceDetails(quittance);
+    if (!appartement || !bailleur || !locataire) return;
+
+    setDownloading(quittance.id);
+    
+    setViewingQuittance(quittance);
+    
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    const element = document.getElementById('quittance-pdf');
+    if (!element) {
+      setDownloading(null);
+      setViewingQuittance(null);
+      return;
+    }
+    
+    const opt = {
+      margin: 10,
+      filename: `quittance_${quittance.numero}_${MOIS[quittance.mois]}_${quittance.annee}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    try {
+      await html2pdf().set(opt).from(element).save();
+    } catch (error) {
+      console.error('Erreur lors du téléchargement PDF:', error);
+      alert('Erreur lors de la génération du PDF');
+    } finally {
+      setDownloading(null);
+      setViewingQuittance(null);
+    }
   };
 
   if (viewingQuittance) {
@@ -160,6 +198,15 @@ export function QuittanceArchive({
                   onClick={() => setViewingQuittance(quittance)}
                 >
                   <Eye className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleDownloadPDF(quittance)}
+                  disabled={downloading === quittance.id}
+                  className="text-green-600 hover:bg-green-50"
+                >
+                  <Download className="w-4 h-4" />
                 </Button>
                 <Button
                   size="sm"
