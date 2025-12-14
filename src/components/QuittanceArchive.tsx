@@ -78,6 +78,7 @@ export function QuittanceArchive({
     };
 
     try {
+      const html2pdf = (await import('html2pdf.js')).default;
       await html2pdf().set(opt).from(element).save();
     } catch (error) {
       console.error('Erreur lors du téléchargement PDF:', error);
