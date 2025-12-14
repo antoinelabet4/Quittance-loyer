@@ -8,7 +8,7 @@ import { QuittancePreview } from './QuittancePreview';
 import type { Quittance, Appartement, Bailleur, Locataire } from '@/lib/types';
 import { MOIS, formatMoney } from '@/lib/types';
 import { FileText, Trash2, Eye, Calendar, Home, Download } from 'lucide-react';
-import { generateQuittancePDF } from '@/lib/pdf-utils';
+import { generateQuittancePDF } from '@/lib/pdf-generator';
 
 interface QuittanceArchiveProps {
   quittances: Quittance[];
@@ -59,7 +59,16 @@ export function QuittanceArchive({
     setDownloading(quittance.id);
     
     try {
-      await generateQuittancePDF(quittance, bailleur, locataire, appartement);
+      const signatureKey = `signature_${bailleur.id}`;
+      const signature = localStorage.getItem(signatureKey);
+      
+      await generateQuittancePDF(
+        quittance,
+        bailleur,
+        locataire,
+        appartement,
+        signature
+      );
     } catch (error) {
       console.error('Erreur lors du téléchargement PDF:', error);
       alert('Erreur lors de la génération du PDF');
@@ -78,8 +87,14 @@ export function QuittanceArchive({
             <Button onClick={() => setViewingQuittance(null)} variant="outline">
               Retour à l&apos;archive
             </Button>
-            <Button onClick={() => window.print()} variant="secondary" className="ml-auto">
-              Imprimer / PDF
+            <Button 
+              onClick={() => handleDownloadPDF(viewingQuittance)} 
+              variant="secondary" 
+              className="ml-auto"
+              disabled={downloading === viewingQuittance.id}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              {downloading === viewingQuittance.id ? 'Génération...' : 'Télécharger PDF'}
             </Button>
           </div>
           <div className="border rounded-lg overflow-hidden shadow-lg">
