@@ -22,6 +22,7 @@ export function BailleurForm({ bailleur, onSave, onCancel }: BailleurFormProps) 
     siret: bailleur?.siret || '',
     email: bailleur?.email || '',
     telephone: bailleur?.telephone || '',
+    userId: bailleur?.userId || '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {

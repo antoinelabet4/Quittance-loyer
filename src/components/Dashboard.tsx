@@ -371,6 +371,9 @@ export function Dashboard() {
                             )}
                           </div>
                           <p className="text-sm text-gray-600">{bailleur.adresse}</p>
+                          {bailleur.email && (
+                            <p className="text-xs text-gray-500">Email : {bailleur.email}</p>
+                          )}
                           <p className="text-xs text-gray-500">
                             {bailleur.type === 'societe' ? 'Société' : 'Personne physique'}
                             {bailleur.siret && ` • SIRET: ${bailleur.siret}`}

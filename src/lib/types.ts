@@ -6,6 +6,7 @@ export interface Bailleur {
   siret?: string;
   email?: string;
   telephone?: string;
+  userId?: string;
 }
 
 export interface Locataire {
