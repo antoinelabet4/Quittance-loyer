@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
+import { supabase } from './supabase';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Bailleur, Locataire, Appartement, Quittance } from './types';
 
 interface AppData {
@@ -9,10 +11,7 @@ interface AppData {
   appartements: Appartement[];
   quittances: Quittance[];
   activeBailleurId: string | null;
-  initializedForUser?: string;
 }
-
-const STORAGE_KEY = 'quittance-loyer-data';
 
 const defaultData: AppData = {
   bailleurs: [],
@@ -25,276 +24,394 @@ const defaultData: AppData = {
 const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
 export function useLocalStorage() {
+  const { user } = useAuth();
   const [data, setData] = useState<AppData>(defaultData);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  const loadData = useCallback(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    const userStored = localStorage.getItem('user');
-    let parsedData = defaultData;
-    
-    if (stored) {
-      try {
-        parsedData = JSON.parse(stored);
-      } catch {
-        parsedData = defaultData;
-      }
+  const loadData = useCallback(async () => {
+    if (!user) {
+      setData(defaultData);
+      setIsLoaded(true);
+      return;
     }
 
-    if (userStored) {
-      try {
-        const user = JSON.parse(userStored);
-        if (user.email === 'antoinelabet@gmail.com' && parsedData.bailleurs.length === 0 && !parsedData.initializedForUser) {
-          const bailleurLabetConseilId = generateId();
-          const bailleurAntoineLabetId = generateId();
-          
-          const locataireAnneId = generateId();
-          const locataireMarionId = generateId();
-          const locataireMatignonId = generateId();
-          const locataireOlivierId = generateId();
-          const locataireAmbreId = generateId();
-          
-          const apptTrappesId = generateId();
-          const apptMontreuilId = generateId();
-          
-          parsedData = {
-            ...parsedData,
-            bailleurs: [
-              {
-                id: bailleurLabetConseilId,
-                nom: 'Labet Conseil',
-                adresse: '60, rue Jean Jaurès, 78190, Trappes',
-                type: 'societe',
-                siret: '12345678900012',
-                email: 'contact@labetconseil.fr',
-                telephone: '0601020304',
-              },
-              {
-                id: bailleurAntoineLabetId,
-                nom: 'Antoine Labet',
-                adresse: '24, rue des Clos Français, 93100, Montreuil',
-                type: 'particulier',
-                email: 'antoinelabet@gmail.com',
-                telephone: '0601020304',
-              }
-            ],
-            locataires: [
-              {
-                id: locataireAnneId,
-                nom: 'Donnadieu Anne Lise',
-                adresse: '60, rue Jean Jaurès, 78190, Trappes',
-                email: 'anne.donnadieu@email.com',
-                telephone: '0612345678',
-              },
-              {
-                id: locataireMarionId,
-                nom: 'Durieux Marion',
-                adresse: '60, rue Jean Jaurès, 78190, Trappes',
-                email: 'marion.durieux@email.com',
-                telephone: '0698765432',
-              },
-              {
-                id: locataireMatignonId,
-                nom: 'Matignon Ulysse',
-                adresse: '24, rue des Clos Français, 93100, Montreuil',
-                email: 'ulysse.matignon@email.com',
-                telephone: '0687654321',
-              },
-              {
-                id: locataireOlivierId,
-                nom: 'Grave Olivier',
-                adresse: '24, rue des Clos Français, 93100, Montreuil',
-                email: 'olivier.grave@email.com',
-                telephone: '0676543210',
-              },
-              {
-                id: locataireAmbreId,
-                nom: 'Pigeault Ambre',
-                adresse: '24, rue des Clos Français, 93100, Montreuil',
-                email: 'ambre.pigeault@email.com',
-                telephone: '0665432109',
-              }
-            ],
-            appartements: [
-              {
-                id: apptTrappesId,
-                adresse: '60, rue Jean Jaurès, 78190, Trappes',
-                bailleurId: bailleurLabetConseilId,
-                locataireIds: [locataireAnneId, locataireMarionId],
-                isColocation: true,
-                loyer: 1110,
-                charges: 190,
-                dateEntree: '2024-01-01',
-              },
-              {
-                id: apptMontreuilId,
-                adresse: '24, rue des Clos Français, 93100, Montreuil',
-                bailleurId: bailleurAntoineLabetId,
-                locataireIds: [locataireMatignonId, locataireOlivierId, locataireAmbreId],
-                isColocation: true,
-                loyer: 1608,
-                charges: 267,
-                dateEntree: '2024-06-01',
-              }
-            ],
-            quittances: [
-              {
-                id: generateId(),
-                numero: 1,
-                appartementId: apptTrappesId,
-                locataireId: locataireMarionId,
-                bailleurId: bailleurLabetConseilId,
-                mois: 'Novembre',
-                annee: 2025,
-                montantLoyer: 650,
-                montantCharges: 0,
-                dateCreation: new Date('2025-11-14').toISOString(),
-                lieuEmission: 'Paris',
-                modePaiement: 'Virement bancaire',
-                datePaiement: '14/11/2025',
-                archived: true,
-              },
-              {
-                id: generateId(),
-                numero: 2,
-                appartementId: apptTrappesId,
-                locataireId: locataireMarionId,
-                bailleurId: bailleurLabetConseilId,
-                mois: 'Décembre',
-                annee: 2025,
-                montantLoyer: 650,
-                montantCharges: 0,
-                dateCreation: new Date('2025-12-14').toISOString(),
-                lieuEmission: 'Paris',
-                modePaiement: 'Virement bancaire',
-                datePaiement: '14/12/2025',
-                archived: true,
-              }
-            ],
-            activeBailleurId: bailleurLabetConseilId,
-            initializedForUser: user.email,
-          };
-        }
-      } catch (e) {
-        console.error('Error initializing user data:', e);
-      }
+    try {
+      const [bailleursRes, locatairesRes, appartementsRes, quittancesRes] = await Promise.all([
+        supabase.from('bailleurs').select('*').eq('user_id', user.id),
+        supabase.from('locataires').select('*').eq('user_id', user.id),
+        supabase.from('appartements').select('*').eq('user_id', user.id),
+        supabase.from('quittances').select('*').eq('user_id', user.id),
+      ]);
+
+      const bailleurs = (bailleursRes.data || []).map(b => ({
+        id: b.id,
+        nom: b.nom,
+        adresse: b.adresse,
+        email: b.email,
+        type: b.type,
+        siret: b.siret,
+        telephone: '',
+      }));
+
+      const locataires = (locatairesRes.data || []).map(l => ({
+        id: l.id,
+        nom: l.nom,
+        adresse: l.adresse,
+        email: l.email,
+        telephone: '',
+      }));
+
+      const appartements = (appartementsRes.data || []).map(a => ({
+        id: a.id,
+        bailleurId: a.bailleur_id,
+        adresse: a.adresse,
+        loyer: parseFloat(a.loyer),
+        charges: parseFloat(a.charges),
+        isColocation: a.is_colocation,
+        loyerParLocataire: a.loyer_par_locataire,
+        locataireIds: a.locataire_ids,
+        dateEntree: '',
+      }));
+
+      const quittances = (quittancesRes.data || []).map(q => ({
+        id: q.id,
+        numero: parseInt(q.numero),
+        appartementId: q.appartement_id,
+        locataireId: q.locataire_data?.locataireId,
+        bailleurId: '',
+        mois: q.mois,
+        annee: q.annee,
+        montantLoyer: parseFloat(q.montant_loyer),
+        montantCharges: parseFloat(q.montant_charges),
+        dateCreation: new Date(q.created_at).toISOString(),
+        lieuEmission: '',
+        modePaiement: '',
+        datePaiement: '',
+        archived: true,
+      }));
+
+      setData({
+        bailleurs,
+        locataires,
+        appartements,
+        quittances,
+        activeBailleurId: bailleurs.length > 0 ? bailleurs[0].id : null,
+      });
+    } catch (error) {
+      console.error('Error loading data from Supabase:', error);
+      setData(defaultData);
     }
 
-    setData(parsedData);
     setIsLoaded(true);
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     loadData();
-
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY) {
-        loadData();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
   }, [loadData]);
-
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    }
-  }, [data, isLoaded]);
 
   const setActiveBailleur = useCallback((id: string | null) => {
     setData(prev => ({ ...prev, activeBailleurId: id }));
   }, []);
 
-  const addBailleur = useCallback((bailleur: Bailleur) => {
-    setData(prev => ({
-      ...prev,
-      bailleurs: [...prev.bailleurs, bailleur],
-      activeBailleurId: prev.activeBailleurId || bailleur.id,
-    }));
-  }, []);
+  const addBailleur = useCallback(async (bailleur: Bailleur) => {
+    if (!user) return;
+    
+    try {
+      const { data: inserted } = await supabase
+        .from('bailleurs')
+        .insert({
+          id: bailleur.id,
+          user_id: user.id,
+          nom: bailleur.nom,
+          adresse: bailleur.adresse,
+          email: bailleur.email,
+          type: bailleur.type,
+          siret: bailleur.siret,
+        })
+        .select()
+        .single();
 
-  const updateBailleur = useCallback((bailleur: Bailleur) => {
-    setData(prev => ({
-      ...prev,
-      bailleurs: prev.bailleurs.map(b => b.id === bailleur.id ? bailleur : b),
-    }));
-  }, []);
+      if (inserted) {
+        setData(prev => ({
+          ...prev,
+          bailleurs: [...prev.bailleurs, bailleur],
+          activeBailleurId: prev.activeBailleurId || bailleur.id,
+        }));
+      }
+    } catch (error) {
+      console.error('Error adding bailleur:', error);
+    }
+  }, [user]);
 
-  const deleteBailleur = useCallback((id: string) => {
-    setData(prev => ({
-      ...prev,
-      bailleurs: prev.bailleurs.filter(b => b.id !== id),
-      activeBailleurId: prev.activeBailleurId === id ? (prev.bailleurs[0]?.id || null) : prev.activeBailleurId,
-    }));
-  }, []);
+  const updateBailleur = useCallback(async (bailleur: Bailleur) => {
+    if (!user) return;
 
-  const addLocataire = useCallback((locataire: Locataire) => {
-    setData(prev => ({
-      ...prev,
-      locataires: [...prev.locataires, locataire],
-    }));
-  }, []);
+    try {
+      await supabase
+        .from('bailleurs')
+        .update({
+          nom: bailleur.nom,
+          adresse: bailleur.adresse,
+          email: bailleur.email,
+          type: bailleur.type,
+          siret: bailleur.siret,
+        })
+        .eq('id', bailleur.id)
+        .eq('user_id', user.id);
 
-  const updateLocataire = useCallback((locataire: Locataire) => {
-    setData(prev => ({
-      ...prev,
-      locataires: prev.locataires.map(l => l.id === locataire.id ? locataire : l),
-    }));
-  }, []);
+      setData(prev => ({
+        ...prev,
+        bailleurs: prev.bailleurs.map(b => b.id === bailleur.id ? bailleur : b),
+      }));
+    } catch (error) {
+      console.error('Error updating bailleur:', error);
+    }
+  }, [user]);
 
-  const deleteLocataire = useCallback((id: string) => {
-    setData(prev => ({
-      ...prev,
-      locataires: prev.locataires.filter(l => l.id !== id),
-    }));
-  }, []);
+  const deleteBailleur = useCallback(async (id: string) => {
+    if (!user) return;
 
-  const addAppartement = useCallback((appartement: Appartement) => {
-    setData(prev => ({
-      ...prev,
-      appartements: [...prev.appartements, appartement],
-    }));
-  }, []);
+    try {
+      await supabase
+        .from('bailleurs')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
 
-  const updateAppartement = useCallback((appartement: Appartement) => {
-    setData(prev => ({
-      ...prev,
-      appartements: prev.appartements.map(a => a.id === appartement.id ? appartement : a),
-    }));
-  }, []);
+      setData(prev => ({
+        ...prev,
+        bailleurs: prev.bailleurs.filter(b => b.id !== id),
+        activeBailleurId: prev.activeBailleurId === id ? (prev.bailleurs[0]?.id || null) : prev.activeBailleurId,
+      }));
+    } catch (error) {
+      console.error('Error deleting bailleur:', error);
+    }
+  }, [user]);
 
-  const deleteAppartement = useCallback((id: string) => {
-    setData(prev => ({
-      ...prev,
-      appartements: prev.appartements.filter(a => a.id !== id),
-    }));
-  }, []);
+  const addLocataire = useCallback(async (locataire: Locataire) => {
+    if (!user) return;
 
-  const addQuittance = useCallback((quittance: Quittance) => {
-    setData(prev => ({
-      ...prev,
-      quittances: [...prev.quittances, quittance],
-    }));
-  }, []);
+    try {
+      const { data: inserted } = await supabase
+        .from('locataires')
+        .insert({
+          id: locataire.id,
+          user_id: user.id,
+          nom: locataire.nom,
+          adresse: locataire.adresse,
+          email: locataire.email,
+        })
+        .select()
+        .single();
 
-  const updateQuittance = useCallback((quittance: Quittance) => {
-    setData(prev => ({
-      ...prev,
-      quittances: prev.quittances.map(q => q.id === quittance.id ? quittance : q),
-    }));
-  }, []);
+      if (inserted) {
+        setData(prev => ({
+          ...prev,
+          locataires: [...prev.locataires, locataire],
+        }));
+      }
+    } catch (error) {
+      console.error('Error adding locataire:', error);
+    }
+  }, [user]);
 
-  const deleteQuittance = useCallback((id: string) => {
-    setData(prev => ({
-      ...prev,
-      quittances: prev.quittances.filter(q => q.id !== id),
-    }));
-  }, []);
+  const updateLocataire = useCallback(async (locataire: Locataire) => {
+    if (!user) return;
+
+    try {
+      await supabase
+        .from('locataires')
+        .update({
+          nom: locataire.nom,
+          adresse: locataire.adresse,
+          email: locataire.email,
+        })
+        .eq('id', locataire.id)
+        .eq('user_id', user.id);
+
+      setData(prev => ({
+        ...prev,
+        locataires: prev.locataires.map(l => l.id === locataire.id ? locataire : l),
+      }));
+    } catch (error) {
+      console.error('Error updating locataire:', error);
+    }
+  }, [user]);
+
+  const deleteLocataire = useCallback(async (id: string) => {
+    if (!user) return;
+
+    try {
+      await supabase
+        .from('locataires')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      setData(prev => ({
+        ...prev,
+        locataires: prev.locataires.filter(l => l.id !== id),
+      }));
+    } catch (error) {
+      console.error('Error deleting locataire:', error);
+    }
+  }, [user]);
+
+  const addAppartement = useCallback(async (appartement: Appartement) => {
+    if (!user) return;
+
+    try {
+      const { data: inserted } = await supabase
+        .from('appartements')
+        .insert({
+          id: appartement.id,
+          user_id: user.id,
+          bailleur_id: appartement.bailleurId,
+          adresse: appartement.adresse,
+          loyer: appartement.loyer,
+          charges: appartement.charges,
+          is_colocation: appartement.isColocation,
+          loyer_par_locataire: appartement.loyerParLocataire,
+          locataire_ids: appartement.locataireIds,
+        })
+        .select()
+        .single();
+
+      if (inserted) {
+        setData(prev => ({
+          ...prev,
+          appartements: [...prev.appartements, appartement],
+        }));
+      }
+    } catch (error) {
+      console.error('Error adding appartement:', error);
+    }
+  }, [user]);
+
+  const updateAppartement = useCallback(async (appartement: Appartement) => {
+    if (!user) return;
+
+    try {
+      await supabase
+        .from('appartements')
+        .update({
+          bailleur_id: appartement.bailleurId,
+          adresse: appartement.adresse,
+          loyer: appartement.loyer,
+          charges: appartement.charges,
+          is_colocation: appartement.isColocation,
+          loyer_par_locataire: appartement.loyerParLocataire,
+          locataire_ids: appartement.locataireIds,
+        })
+        .eq('id', appartement.id)
+        .eq('user_id', user.id);
+
+      setData(prev => ({
+        ...prev,
+        appartements: prev.appartements.map(a => a.id === appartement.id ? appartement : a),
+      }));
+    } catch (error) {
+      console.error('Error updating appartement:', error);
+    }
+  }, [user]);
+
+  const deleteAppartement = useCallback(async (id: string) => {
+    if (!user) return;
+
+    try {
+      await supabase
+        .from('appartements')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      setData(prev => ({
+        ...prev,
+        appartements: prev.appartements.filter(a => a.id !== id),
+      }));
+    } catch (error) {
+      console.error('Error deleting appartement:', error);
+    }
+  }, [user]);
+
+  const addQuittance = useCallback(async (quittance: Quittance) => {
+    if (!user) return;
+
+    try {
+      const { data: inserted } = await supabase
+        .from('quittances')
+        .insert({
+          id: quittance.id,
+          user_id: user.id,
+          appartement_id: quittance.appartementId,
+          numero: quittance.numero.toString(),
+          mois: quittance.mois,
+          annee: quittance.annee,
+          montant_loyer: quittance.montantLoyer,
+          montant_charges: quittance.montantCharges,
+          montant_total: quittance.montantLoyer + quittance.montantCharges,
+          locataire_data: { locataireId: quittance.locataireId },
+        })
+        .select()
+        .single();
+
+      if (inserted) {
+        setData(prev => ({
+          ...prev,
+          quittances: [...prev.quittances, quittance],
+        }));
+      }
+    } catch (error) {
+      console.error('Error adding quittance:', error);
+    }
+  }, [user]);
+
+  const updateQuittance = useCallback(async (quittance: Quittance) => {
+    if (!user) return;
+
+    try {
+      await supabase
+        .from('quittances')
+        .update({
+          appartement_id: quittance.appartementId,
+          numero: quittance.numero.toString(),
+          mois: quittance.mois,
+          annee: quittance.annee,
+          montant_loyer: quittance.montantLoyer,
+          montant_charges: quittance.montantCharges,
+          montant_total: quittance.montantLoyer + quittance.montantCharges,
+          locataire_data: { locataireId: quittance.locataireId },
+        })
+        .eq('id', quittance.id)
+        .eq('user_id', user.id);
+
+      setData(prev => ({
+        ...prev,
+        quittances: prev.quittances.map(q => q.id === quittance.id ? quittance : q),
+      }));
+    } catch (error) {
+      console.error('Error updating quittance:', error);
+    }
+  }, [user]);
+
+  const deleteQuittance = useCallback(async (id: string) => {
+    if (!user) return;
+
+    try {
+      await supabase
+        .from('quittances')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      setData(prev => ({
+        ...prev,
+        quittances: prev.quittances.filter(q => q.id !== id),
+      }));
+    } catch (error) {
+      console.error('Error deleting quittance:', error);
+    }
+  }, [user]);
 
   const getNextQuittanceNumber = useCallback((appartementId: string) => {
     const apptQuittances = data.quittances.filter(q => q.appartementId === appartementId);
