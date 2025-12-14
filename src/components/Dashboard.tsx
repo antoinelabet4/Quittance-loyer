@@ -263,6 +263,16 @@ export function Dashboard() {
                           .map(id => locataires.find(l => l.id === id)?.nom)
                           .filter(Boolean)
                           .join(', ');
+                          
+                        let loyerDisplay = '';
+                        if (appt.isColocation && appt.loyerParLocataire) {
+                          const totalLoyer = Object.values(appt.loyerParLocataire).reduce((sum, m) => sum + m.loyer, 0);
+                          const totalCharges = Object.values(appt.loyerParLocataire).reduce((sum, m) => sum + m.charges, 0);
+                          loyerDisplay = `Colocation - Total: ${totalLoyer.toFixed(2)} € + Charges: ${totalCharges.toFixed(2)} €`;
+                        } else {
+                          loyerDisplay = `Loyer: ${appt.loyer.toFixed(2)} € + Charges: ${appt.charges.toFixed(2)} €`;
+                        }
+                        
                         return (
                           <div key={appt.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                             <div>
@@ -271,7 +281,7 @@ export function Dashboard() {
                                 Locataire(s) : {locataireNames || 'Non assigné'}
                               </p>
                               <p className="text-sm text-gray-600">
-                                Loyer : {appt.loyer.toFixed(2)} € + Charges : {appt.charges.toFixed(2)} €
+                                {loyerDisplay}
                               </p>
                             </div>
                             <div className="flex gap-2">
