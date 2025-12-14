@@ -342,7 +342,7 @@ ${selectedBailleur.nom}`;
               </div>
             </div>
 
-            <div className="space-y-2 !w-[371px] !h-full">
+            <div className="space-y-2 !w-[244px] !h-full">
               <Label>Locataire</Label>
               <Select
               value={selectedLocataireId}
