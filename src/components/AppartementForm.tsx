@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import type { Appartement, Bailleur, Locataire } from '@/lib/types';
 import { generateId } from '@/lib/types';
 import { Plus, X } from 'lucide-react';
@@ -24,8 +25,10 @@ export function AppartementForm({ appartement, bailleurs, locataires, onSave, on
     adresse: appartement?.adresse || '',
     bailleurId: appartement?.bailleurId || '',
     locataireIds: appartement?.locataireIds || [],
+    isColocation: appartement?.isColocation || false,
     loyer: appartement?.loyer || 0,
     charges: appartement?.charges || 0,
+    loyerParLocataire: appartement?.loyerParLocataire || {},
     dateEntree: appartement?.dateEntree || new Date().toISOString().split('T')[0],
   });
   const [showCreateLocataire, setShowCreateLocataire] = useState(false);
@@ -41,19 +44,74 @@ export function AppartementForm({ appartement, bailleurs, locataires, onSave, on
 
   const handleAddLocataire = () => {
     if (selectedLocataireId && !form.locataireIds.includes(selectedLocataireId)) {
-      setForm({ ...form, locataireIds: [...form.locataireIds, selectedLocataireId] });
+      const newLocataireIds = [...form.locataireIds, selectedLocataireId];
+      const newForm = { ...form, locataireIds: newLocataireIds };
+      
+      if (form.isColocation) {
+        newForm.loyerParLocataire = {
+          ...form.loyerParLocataire,
+          [selectedLocataireId]: { loyer: 0, charges: 0 }
+        };
+      }
+      
+      setForm(newForm);
       setSelectedLocataireId('');
     }
   };
 
   const handleRemoveLocataire = (id: string) => {
-    setForm({ ...form, locataireIds: form.locataireIds.filter(l => l !== id) });
+    const newLocataireIds = form.locataireIds.filter(l => l !== id);
+    const newLoyerParLocataire = { ...form.loyerParLocataire };
+    delete newLoyerParLocataire[id];
+    
+    setForm({ 
+      ...form, 
+      locataireIds: newLocataireIds,
+      loyerParLocataire: newLoyerParLocataire
+    });
   };
 
   const handleCreateLocataire = (locataire: Locataire) => {
     onCreateLocataire(locataire);
-    setForm({ ...form, locataireIds: [...form.locataireIds, locataire.id] });
+    const newLocataireIds = [...form.locataireIds, locataire.id];
+    const newForm = { ...form, locataireIds: newLocataireIds };
+    
+    if (form.isColocation) {
+      newForm.loyerParLocataire = {
+        ...form.loyerParLocataire,
+        [locataire.id]: { loyer: 0, charges: 0 }
+      };
+    }
+    
+    setForm(newForm);
     setShowCreateLocataire(false);
+  };
+
+  const handleColocationChange = (checked: boolean) => {
+    const newForm = { ...form, isColocation: checked };
+    
+    if (checked) {
+      const newLoyerParLocataire: { [key: string]: { loyer: number; charges: number } } = {};
+      form.locataireIds.forEach(id => {
+        newLoyerParLocataire[id] = { loyer: 0, charges: 0 };
+      });
+      newForm.loyerParLocataire = newLoyerParLocataire;
+    }
+    
+    setForm(newForm);
+  };
+
+  const updateLoyerParLocataire = (locataireId: string, field: 'loyer' | 'charges', value: number) => {
+    setForm({
+      ...form,
+      loyerParLocataire: {
+        ...form.loyerParLocataire,
+        [locataireId]: {
+          ...form.loyerParLocataire![locataireId],
+          [field]: value
+        }
+      }
+    });
   };
 
   if (showCreateLocataire) {
@@ -137,30 +195,80 @@ export function AppartementForm({ appartement, bailleurs, locataires, onSave, on
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="loyer">Loyer mensuel (€)</Label>
-          <Input
-            id="loyer"
-            type="number"
-            step="0.01"
-            value={form.loyer}
-            onChange={(e) => setForm({ ...form, loyer: parseFloat(e.target.value) || 0 })}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="charges">Charges mensuelles (€)</Label>
-          <Input
-            id="charges"
-            type="number"
-            step="0.01"
-            value={form.charges}
-            onChange={(e) => setForm({ ...form, charges: parseFloat(e.target.value) || 0 })}
-            required
-          />
-        </div>
+      <div className="flex items-center space-x-2 py-2">
+        <Checkbox 
+          id="colocation" 
+          checked={form.isColocation}
+          onCheckedChange={handleColocationChange}
+        />
+        <Label htmlFor="colocation" className="cursor-pointer">
+          Colocation (loyer par locataire)
+        </Label>
       </div>
+
+      {!form.isColocation ? (
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="loyer">Loyer mensuel (€)</Label>
+            <Input
+              id="loyer"
+              type="number"
+              step="0.01"
+              value={form.loyer}
+              onChange={(e) => setForm({ ...form, loyer: parseFloat(e.target.value) || 0 })}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="charges">Charges mensuelles (€)</Label>
+            <Input
+              id="charges"
+              type="number"
+              step="0.01"
+              value={form.charges}
+              onChange={(e) => setForm({ ...form, charges: parseFloat(e.target.value) || 0 })}
+              required
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <Label className="text-sm font-medium">Loyer et charges par locataire</Label>
+          {form.locataireIds.map((id) => {
+            const locataire = locataires.find(l => l.id === id);
+            const montants = form.loyerParLocataire?.[id] || { loyer: 0, charges: 0 };
+            return locataire ? (
+              <div key={id} className="bg-gray-50 p-4 rounded-lg space-y-3">
+                <div className="font-medium text-sm">{locataire.nom}</div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor={`loyer-${id}`} className="text-xs">Loyer (€)</Label>
+                    <Input
+                      id={`loyer-${id}`}
+                      type="number"
+                      step="0.01"
+                      value={montants.loyer}
+                      onChange={(e) => updateLoyerParLocataire(id, 'loyer', parseFloat(e.target.value) || 0)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor={`charges-${id}`} className="text-xs">Charges (€)</Label>
+                    <Input
+                      id={`charges-${id}`}
+                      type="number"
+                      step="0.01"
+                      value={montants.charges}
+                      onChange={(e) => updateLoyerParLocataire(id, 'charges', parseFloat(e.target.value) || 0)}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : null;
+          })}
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="dateEntree">Date d&apos;entrée dans les lieux</Label>
