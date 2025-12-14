@@ -257,13 +257,16 @@ export function Dashboard() {
                   ) : (
                     <div className="space-y-3">
                       {filteredAppartements.map((appt) => {
-                        const locataire = locataires.find(l => l.id === appt.locataireId);
+                        const locataireNames = appt.locataireIds
+                          .map(id => locataires.find(l => l.id === id)?.nom)
+                          .filter(Boolean)
+                          .join(', ');
                         return (
                           <div key={appt.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                             <div>
                               <p className="font-medium">{appt.adresse}</p>
                               <p className="text-sm text-gray-600">
-                                Locataire : {locataire?.nom || 'Non assigné'}
+                                Locataire(s) : {locataireNames || 'Non assigné'}
                               </p>
                               <p className="text-sm text-gray-600">
                                 Loyer : {appt.loyer.toFixed(2)} € + Charges : {appt.charges.toFixed(2)} €
