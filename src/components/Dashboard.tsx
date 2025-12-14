@@ -517,6 +517,8 @@ export function Dashboard() {
             onSave={handleSaveAppartement}
             onCancel={() => { setShowAppartementForm(false); setEditingAppartement(null); }}
             onCreateLocataire={addLocataire}
+            appartementLocataires={appartementLocataires}
+            onSaveAppartementLocataire={addAppartementLocataire}
           />
         </DialogContent>
       </Dialog>
