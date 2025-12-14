@@ -46,7 +46,7 @@ export function QuittanceArchive({
   const getQuittanceDetails = (quittance: Quittance) => {
     const appartement = appartements.find(a => a.id === quittance.appartementId);
     const bailleur = appartement ? bailleurs.find(b => b.id === appartement.bailleurId) : null;
-    const locataire = appartement ? locataires.find(l => l.id === appartement.locataireId) : null;
+    const locataire = locataires.find(l => l.id === quittance.locataireId);
     return { appartement, bailleur, locataire };
   };
 
