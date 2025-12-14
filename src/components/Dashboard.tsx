@@ -49,6 +49,7 @@ export function Dashboard() {
     locataires,
     appartements,
     quittances,
+    appartementLocataires,
     activeBailleurId,
     setActiveBailleur,
     addBailleur,
@@ -64,6 +65,8 @@ export function Dashboard() {
     updateQuittance,
     deleteQuittance,
     getNextQuittanceNumber,
+    addAppartementLocataire,
+    deleteAppartementLocataire,
   } = useLocalStorage();
 
   const [editingBailleur, setEditingBailleur] = useState<Bailleur | null>(null);
