@@ -117,6 +117,8 @@ export function useLocalStorage() {
     if (!user) return;
     
     try {
+      console.log('Starting addBailleur with:', { bailleur, userId: user.id });
+      
       const { data: inserted, error } = await supabase
         .from('bailleurs')
         .insert({
@@ -131,21 +133,26 @@ export function useLocalStorage() {
         .select()
         .single();
 
+      console.log('Supabase insert result:', { inserted, error });
+
       if (error) {
         console.error('Error adding bailleur:', error);
         throw error;
       }
 
       if (inserted) {
+        console.log('Bailleur inserted successfully, updating local state');
         setData(prev => ({
           ...prev,
           bailleurs: [...prev.bailleurs, bailleur],
           activeBailleurId: prev.activeBailleurId || bailleur.id,
         }));
+        console.log('Calling loadData to refresh');
         await loadData();
+        console.log('loadData completed');
       }
     } catch (error) {
-      console.error('Error adding bailleur:', error);
+      console.error('Error in addBailleur:', error);
       throw error;
     }
   }, [user, loadData]);
