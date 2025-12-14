@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Quittance, Bailleur, Locataire, Appartement } from '@/lib/types';
 import { MOIS, numberToWords, formatDate, formatMoney } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,15 @@ interface QuittancePreviewProps {
 export function QuittancePreview({ quittance, bailleur, locataire, appartement }: QuittancePreviewProps) {
   const [signature, setSignature] = useState<string | null>(null);
   
+  const signatureKey = `signature_${bailleur.id}`;
+
+  useEffect(() => {
+    const storedSignature = localStorage.getItem(signatureKey);
+    if (storedSignature) {
+      setSignature(storedSignature);
+    }
+  }, [signatureKey]);
+  
   const totalEnLettres = numberToWords(Math.floor(quittance.total));
   const centimes = Math.round((quittance.total % 1) * 100);
   const totalLettresComplet = centimes > 0 
@@ -27,7 +36,9 @@ export function QuittancePreview({ quittance, bailleur, locataire, appartement }
     if (file && file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onload = (event) => {
-        setSignature(event.target?.result as string);
+        const signatureData = event.target?.result as string;
+        setSignature(signatureData);
+        localStorage.setItem(signatureKey, signatureData);
       };
       reader.readAsDataURL(file);
     }
@@ -35,6 +46,7 @@ export function QuittancePreview({ quittance, bailleur, locataire, appartement }
 
   const removeSignature = () => {
     setSignature(null);
+    localStorage.removeItem(signatureKey);
   };
 
   return (
