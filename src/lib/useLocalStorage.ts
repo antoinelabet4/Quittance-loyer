@@ -9,6 +9,7 @@ interface AppData {
   appartements: Appartement[];
   quittances: Quittance[];
   activeBailleurId: string | null;
+  initializedForUser?: string;
 }
 
 const STORAGE_KEY = 'quittance-loyer-data';
@@ -21,19 +22,51 @@ const defaultData: AppData = {
   activeBailleurId: null,
 };
 
+const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
 export function useLocalStorage() {
   const [data, setData] = useState<AppData>(defaultData);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
+    const userStored = localStorage.getItem('user');
+    let parsedData = defaultData;
+    
     if (stored) {
       try {
-        setData(JSON.parse(stored));
+        parsedData = JSON.parse(stored);
       } catch {
-        setData(defaultData);
+        parsedData = defaultData;
       }
     }
+
+    if (userStored) {
+      try {
+        const user = JSON.parse(userStored);
+        if (user.email === 'antoinelabet@gmail.com' && parsedData.bailleurs.length === 0 && !parsedData.initializedForUser) {
+          const bailleurId = generateId();
+          parsedData = {
+            ...parsedData,
+            bailleurs: [{
+              id: bailleurId,
+              nom: 'Labet Conseil',
+              adresse: '123 Rue de la République, 75001 Paris',
+              type: 'societe',
+              siret: '',
+              email: 'antoinelabet@gmail.com',
+              telephone: '',
+            }],
+            activeBailleurId: bailleurId,
+            initializedForUser: user.email,
+          };
+        }
+      } catch (e) {
+        console.error('Error initializing user data:', e);
+      }
+    }
+
+    setData(parsedData);
     setIsLoaded(true);
   }, []);
 
