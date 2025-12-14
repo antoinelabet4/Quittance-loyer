@@ -78,10 +78,20 @@ export function QuittanceGenerator({
     const dateDebut = new Date(selectedAnnee, selectedMois, 1);
     const dateFin = new Date(selectedAnnee, selectedMois + 1, 0);
 
+    let loyer = selectedAppartement.loyer;
+    let charges = selectedAppartement.charges;
+
+    if (selectedAppartement.isColocation && selectedAppartement.loyerParLocataire?.[selectedLocataireId]) {
+      const montants = selectedAppartement.loyerParLocataire[selectedLocataireId];
+      loyer = montants.loyer;
+      charges = montants.charges;
+    }
+
     return {
       id: existingQuittance?.id || generateId(),
       numero: existingQuittance?.numero || getNextQuittanceNumber(selectedAppartementId),
       appartementId: selectedAppartementId,
+      locataireId: selectedLocataireId,
       mois: selectedMois,
       annee: selectedAnnee,
       dateDebut: dateDebut.toISOString().split('T')[0],
@@ -90,9 +100,9 @@ export function QuittanceGenerator({
       dateEmission: currentDate.toISOString().split('T')[0],
       lieuEmission,
       modePaiement,
-      loyer: selectedAppartement.loyer,
-      charges: selectedAppartement.charges,
-      total: selectedAppartement.loyer + selectedAppartement.charges,
+      loyer,
+      charges,
+      total: loyer + charges,
     };
   };
 
