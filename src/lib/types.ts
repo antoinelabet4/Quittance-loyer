@@ -17,6 +17,16 @@ export interface Locataire {
   telephone?: string;
 }
 
+export interface AppartementLocataire {
+  id: string;
+  appartementId: string;
+  locataireId: string;
+  dateEntree: string;
+  dateSortie?: string;
+  loyer?: number;
+  charges?: number;
+}
+
 export interface Appartement {
   id: string;
   adresse: string;
