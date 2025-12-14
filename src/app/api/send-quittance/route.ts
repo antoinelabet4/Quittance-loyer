@@ -9,16 +9,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log('🔵 [API] Body reçu:', JSON.stringify(body, null, 2));
     
-    const { type, to, recipient, quittance, bailleur, locataire, appartement } = body as {
-      type: 'email' | 'sms';
-      to: string;
-      recipient?: 'bailleur' | 'locataire';
-      quittance: Quittance;
-      bailleur: Bailleur;
-      locataire: Locataire;
-      appartement: Appartement;
-    };
-    
     const { type, to, from, body: customBody, quittance, bailleur, locataire, appartement } = body as {
       type: 'email' | 'sms';
       to: string;
@@ -32,7 +22,6 @@ export async function POST(request: NextRequest) {
 
     console.log('🔵 [API] Type:', type);
     console.log('🔵 [API] Destinataire:', to);
-    console.log('🔵 [API] Recipient type:', recipient);
     console.log('🔵 [API] From:', from);
     console.log('🔵 [API] Custom body présent:', !!customBody);
     console.log('🔵 [API] Bailleur:', bailleur.nom, bailleur.email);
@@ -43,11 +32,9 @@ export async function POST(request: NextRequest) {
       const fromEmail = from || bailleur.email || 'onboarding@resend.dev';
       
       console.log('📧 [EMAIL] Configuration:');
-      console.log('📧 [EMAIL] De (FROM):', bailleur.email || 'no-reply@quittance.com');
       console.log('📧 [EMAIL] De (FROM):', fromEmail);
       console.log('📧 [EMAIL] Nom expéditeur:', bailleur.nom);
       console.log('📧 [EMAIL] À (TO):', to);
-      console.log('📧 [EMAIL] Type destinataire:', recipient);
       console.log('📧 [EMAIL] Sujet:', `Quittance de loyer - ${MOIS[quittance.mois]} ${quittance.annee}`);
       console.log('📧 [EMAIL] Corps:', emailBody.substring(0, 200) + '...');
       console.log('📧 [EMAIL] RESEND_API_KEY présent:', !!process.env.RESEND_API_KEY);
@@ -58,7 +45,6 @@ export async function POST(request: NextRequest) {
           const { Resend } = await import('resend');
           const resend = new Resend(process.env.RESEND_API_KEY);
           
-          const fromEmail = bailleur.email || 'no-reply@quittance.com';
           console.log('📧 [EMAIL] Envoi depuis:', fromEmail);
           
           const result = await resend.emails.send({
@@ -87,7 +73,7 @@ export async function POST(request: NextRequest) {
         console.log('⚠️ [EMAIL] Resend non configuré, simulation seulement');
         return NextResponse.json({ 
           success: true, 
-          message: `Email simulé envoyé de ${bailleur.nom} (${bailleur.email}) à ${to}. Configurez RESEND_API_KEY pour l'envoi réel.` 
+          message: `Email simulé envoyé de ${bailleur.nom} (${fromEmail}) à ${to}. Configurez RESEND_API_KEY pour l'envoi réel.` 
         });
       }
     } else if (type === 'sms') {
