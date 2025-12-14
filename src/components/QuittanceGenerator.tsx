@@ -11,7 +11,7 @@ import { AppartementForm } from './AppartementForm';
 import type { Quittance, Appartement, Bailleur, Locataire, ModePaiement } from '@/lib/types';
 import { MOIS, generateId } from '@/lib/types';
 import { FileText, Download, Save, Plus, Mail, MessageSquare } from 'lucide-react';
-import { generateQuittancePDF } from '@/lib/pdf-utils';
+import { generateQuittancePDF } from '@/lib/pdf-generator';
 
 interface QuittanceGeneratorProps {
   appartements: Appartement[];
@@ -224,7 +224,8 @@ ${selectedBailleur.nom}`;
         quittancePreview,
         selectedBailleur,
         selectedLocataire,
-        selectedAppartement
+        selectedAppartement,
+        null
       );
     } catch (error) {
       console.error('Erreur lors du téléchargement PDF:', error);
