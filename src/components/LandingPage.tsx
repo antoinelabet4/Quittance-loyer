@@ -125,12 +125,8 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
         </div>
 
         <div className="max-w-7xl mx-auto text-center">
-          <motion.div {...fadeIn}>
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-[#000091] text-xs font-semibold mb-6 border border-blue-100">
-              <CheckCircle2 className="w-3 h-3" />
-              Adopté par +500 bailleurs indépendants
-            </span>
-            <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight mb-8 text-slate-900 leading-[1.1]">
+            <motion.div {...fadeIn}>
+              <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight mb-8 text-slate-900 leading-[1.1]">
               Générez vos quittances de loyer <br />
               <span className="text-[#000091]">en toute simplicité.</span>
             </h1>
