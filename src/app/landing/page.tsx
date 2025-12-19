@@ -109,16 +109,16 @@ export default function LandingPage() {
             Pourquoi choisir notre générateur ?
           </h3>
           <div className="grid md:grid-cols-2 gap-6">
-            {[
-              'Totalement gratuit, sans frais cachés',
-              'Aucune publicité intrusive',
-              'Données stockées localement sur votre appareil',
-              'Multi-bailleurs et multi-locataires',
-              'Historique complet de vos quittances',
-              'Gestion des colocations',
-              'Interface moderne et responsive',
-              'Mises à jour régulières et support',
-            ].map((feature, i) => (
+              {[
+                'Solution simple et sans frais cachés',
+                'Aucune publicité intrusive',
+                'Données stockées localement sur votre appareil',
+                'Multi-bailleurs et multi-locataires',
+                'Historique complet de vos quittances',
+                'Gestion des colocations',
+                'Interface moderne et responsive',
+                'Mises à jour régulières et support',
+              ].map((feature, i) => (
               <div key={i} className="flex items-center gap-3 text-white">
                 <CheckCircle2 className="w-5 h-5 text-[#e1000f] flex-shrink-0" />
                 <span>{feature}</span>
