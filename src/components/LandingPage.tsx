@@ -139,10 +139,9 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
                   Commencer maintenant
                   <ChevronRight className="ml-2 w-5 h-5" />
                 </Button>
-                <div className="flex items-center gap-4 text-sm text-slate-500 font-medium">
-                  <span className="flex items-center gap-1"><CheckCircle2 className="w-4 h-4 text-green-500" /> Sans engagement</span>
-                  <span className="flex items-center gap-1"><CheckCircle2 className="w-4 h-4 text-green-500" /> Conforme loi 89-462</span>
-                </div>
+                  <div className="flex items-center gap-4 text-sm text-slate-500 font-medium">
+                    <span className="flex items-center gap-1"><CheckCircle2 className="w-4 h-4 text-green-500" /> Conforme loi 89-462</span>
+                  </div>
               </div>
           </motion.div>
 
