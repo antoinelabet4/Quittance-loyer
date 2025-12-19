@@ -134,13 +134,13 @@ export default function LandingPage() {
           <p className="text-blue-200 mb-8 text-lg">
             Rejoignez des centaines de propriétaires qui nous font confiance
           </p>
-          <Button 
-            onClick={() => router.push('/')} 
-            size="lg" 
-            className="bg-white text-[#000091] hover:bg-blue-50 text-lg px-8 py-6 h-auto"
-          >
-            Créer mon compte gratuitement
-          </Button>
+            <Button 
+              onClick={() => router.push('/')} 
+              size="lg" 
+              className="bg-white text-[#000091] hover:bg-blue-50 text-lg px-8 py-6 h-auto"
+            >
+              Créer mon compte
+            </Button>
         </section>
       </main>
 
