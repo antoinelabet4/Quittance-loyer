@@ -6,7 +6,7 @@ import { FileText, Shield, Clock, Download, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-export default function LandingPage() {
+export default function LandingPageFull() {
   const router = useRouter();
 
   return (
