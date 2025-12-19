@@ -164,10 +164,10 @@ export function Dashboard() {
                     className="w-full h-full object-contain"
                   />
                 </div>
-                <div>
-                  <h1 className="text-xl font-bold">Quittances de Loyer</h1>
-                  <p className="text-xs text-blue-200">Générateur de quittance gratuit</p>
-                </div>
+                  <div>
+                    <h1 className="text-xl font-bold">Quittances de Loyer</h1>
+                    <p className="text-xs text-blue-200">Gestion locative simple et conforme</p>
+                  </div>
               </div>
             </Link>
             

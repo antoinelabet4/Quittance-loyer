@@ -22,10 +22,10 @@ export default function LandingPage() {
                   className="w-full h-full object-contain"
                 />
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-white">Quittances de Loyer</h1>
-                <p className="text-xs text-blue-200">Générateur gratuit et conforme</p>
-              </div>
+                <div>
+                  <h1 className="text-xl font-bold text-white">Quittances de Loyer</h1>
+                  <p className="text-xs text-blue-200">Générateur simple et conforme</p>
+                </div>
             </Link>
             <div className="flex items-center gap-3">
               <Button 
@@ -53,7 +53,7 @@ export default function LandingPage() {
             Générez vos quittances de loyer en quelques clics
           </h2>
           <p className="text-xl text-blue-200 mb-8 max-w-2xl mx-auto">
-            Outil 100% gratuit, conforme à la loi française, sans inscription obligatoire. 
+            Outil simple, conforme à la loi française. 
             Vos données restent privées et sécurisées.
           </p>
           <Button 
@@ -62,7 +62,7 @@ export default function LandingPage() {
             className="bg-[#e1000f] hover:bg-[#c10010] text-white text-lg px-8 py-6 h-auto"
           >
             <FileText className="w-6 h-6 mr-3" />
-            Commencer gratuitement
+            Commencer
           </Button>
         </section>
 

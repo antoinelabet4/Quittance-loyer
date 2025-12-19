@@ -90,7 +90,7 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
               <a href="#how-it-works" className="text-sm font-medium hover:text-[#000091] transition-colors">Comment ça marche</a>
               <div className="flex items-center gap-3 border-l pl-8 border-slate-200">
                 <Button variant="ghost" onClick={onLogin} className="text-sm font-medium">Connexion</Button>
-                <Button onClick={onGetStarted} className="bg-[#000091] hover:bg-[#000091]/90 text-sm font-medium">Essayer gratuitement</Button>
+                  <Button onClick={onGetStarted} className="bg-[#000091] hover:bg-[#000091]/90 text-sm font-medium">S'inscrire</Button>
               </div>
             </div>
 
@@ -134,20 +134,20 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
               Générez vos quittances de loyer <br />
               <span className="text-[#000091]">en toute simplicité.</span>
             </h1>
-            <p className="text-lg lg:text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-              La solution gratuite, rapide et conforme pour les propriétaires bailleurs. 
-              Gérez vos locataires, archivez vos documents et envoyez-les en un clic.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button onClick={onGetStarted} size="lg" className="bg-[#000091] hover:bg-[#000091]/90 text-lg px-8 py-7 h-auto rounded-xl shadow-xl shadow-blue-900/10">
-                Commencer gratuitement
-                <ChevronRight className="ml-2 w-5 h-5" />
-              </Button>
-              <div className="flex items-center gap-4 text-sm text-slate-500 font-medium">
-                <span className="flex items-center gap-1"><CheckCircle2 className="w-4 h-4 text-green-500" /> Sans engagement</span>
-                <span className="flex items-center gap-1"><CheckCircle2 className="w-4 h-4 text-green-500" /> 100% Gratuit</span>
+              <p className="text-lg lg:text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+                La solution simple, rapide et conforme pour les propriétaires bailleurs. 
+                Gérez vos locataires, archivez vos documents et envoyez-les en un clic.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Button onClick={onGetStarted} size="lg" className="bg-[#000091] hover:bg-[#000091]/90 text-lg px-8 py-7 h-auto rounded-xl shadow-xl shadow-blue-900/10">
+                  Commencer maintenant
+                  <ChevronRight className="ml-2 w-5 h-5" />
+                </Button>
+                <div className="flex items-center gap-4 text-sm text-slate-500 font-medium">
+                  <span className="flex items-center gap-1"><CheckCircle2 className="w-4 h-4 text-green-500" /> Sans engagement</span>
+                  <span className="flex items-center gap-1"><CheckCircle2 className="w-4 h-4 text-green-500" /> Conforme loi 89-462</span>
+                </div>
               </div>
-            </div>
           </motion.div>
 
           <motion.div 
@@ -298,9 +298,9 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
               Rejoignez des centaines de propriétaires qui utilisent QuittanceExpress pour gagner du temps chaque mois.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-              <Button onClick={onGetStarted} size="lg" className="bg-white text-[#000091] hover:bg-slate-100 text-lg px-10 py-7 h-auto rounded-2xl font-bold">
-                Créer mon compte gratuit
-              </Button>
+                <Button onClick={onGetStarted} size="lg" className="bg-white text-[#000091] hover:bg-slate-100 text-lg px-10 py-7 h-auto rounded-2xl font-bold">
+                  Créer mon compte
+                </Button>
               <button onClick={onLogin} className="text-white font-medium flex items-center gap-2 hover:gap-3 transition-all">
                 Déjà utilisateur ? Connectez-vous <ChevronRight className="w-5 h-5" />
               </button>
@@ -320,7 +320,7 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
               <span className="text-xl font-bold tracking-tight text-white">QuittanceExpress</span>
             </div>
             <p className="max-w-xs mb-8 text-sm leading-relaxed">
-              La solution de gestion locative gratuite et conforme pour les propriétaires indépendants en France.
+              La solution de gestion locative simple et conforme pour les propriétaires indépendants en France.
             </p>
             <div className="flex gap-4">
               {/* Social icons placeholder */}
