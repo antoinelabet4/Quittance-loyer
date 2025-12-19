@@ -48,7 +48,6 @@ export async function POST(request: NextRequest) {
           const resend = new Resend(process.env.RESEND_API_KEY);
           
           console.log('📧 [EMAIL] Envoi depuis:', fromEmail);
-          console.log('📧 [EMAIL] Avec copie à:', ccEmail);
           
           const emailOptions: any = {
             from: `${bailleur.nom} <${fromEmail}>`,
@@ -61,14 +60,23 @@ export async function POST(request: NextRequest) {
             emailOptions.cc = [ccEmail];
           }
           
-          const result = await resend.emails.send(emailOptions);
+          const { data, error } = await resend.emails.send(emailOptions);
           
-          console.log('✅ [EMAIL] Email envoyé avec succès via Resend:', result);
+          if (error) {
+            console.error('❌ [EMAIL] Erreur retournée par Resend:', error);
+            return NextResponse.json({ 
+              success: false, 
+              message: error.message,
+              error: error
+            }, { status: 400 });
+          }
+          
+          console.log('✅ [EMAIL] Email envoyé avec succès via Resend:', data);
           
           return NextResponse.json({ 
             success: true, 
-            message: `Email envoyé de ${bailleur.nom} (${fromEmail}) à ${to} avec copie à ${ccEmail || 'personne'}`,
-            result
+            message: `Email envoyé avec succès`,
+            data
           });
         } catch (resendError) {
           console.error('❌ [EMAIL] Erreur Resend:', resendError);
