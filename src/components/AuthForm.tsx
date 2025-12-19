@@ -9,10 +9,11 @@ import { Eye, EyeOff } from 'lucide-react';
 
 interface AuthFormProps {
   onAuth: (email: string, userId: string) => void;
+  initialIsLogin?: boolean;
 }
 
-export function AuthForm({ onAuth }: AuthFormProps) {
-  const [isLogin, setIsLogin] = useState(true);
+export function AuthForm({ onAuth, initialIsLogin = true }: AuthFormProps) {
+  const [isLogin, setIsLogin] = useState(initialIsLogin);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [nom, setNom] = useState('');
