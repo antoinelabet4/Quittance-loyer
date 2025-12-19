@@ -131,9 +131,9 @@ export default function LandingPage() {
           <h3 className="text-3xl font-bold text-white mb-6">
             Prêt à générer votre première quittance ?
           </h3>
-          <p className="text-blue-200 mb-8 text-lg">
-            Rejoignez des centaines de propriétaires qui nous font confiance
-          </p>
+            <p className="text-blue-200 mb-8 text-lg">
+              La solution de confiance pour les propriétaires
+            </p>
             <Button 
               onClick={() => router.push('/')} 
               size="lg" 
