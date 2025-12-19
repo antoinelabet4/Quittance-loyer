@@ -110,7 +110,7 @@ export default function LandingPage() {
           </h3>
           <div className="grid md:grid-cols-2 gap-6">
             {[
-              'Totalement gratuit, sans frais cachés',
+              'Solution simple et conforme',
               'Aucune publicité intrusive',
               'Données stockées localement sur votre appareil',
               'Multi-bailleurs et multi-locataires',
@@ -139,7 +139,7 @@ export default function LandingPage() {
             size="lg" 
             className="bg-white text-[#000091] hover:bg-blue-50 text-lg px-8 py-6 h-auto"
           >
-            Créer mon compte gratuitement
+            Créer mon compte
           </Button>
         </section>
       </main>
