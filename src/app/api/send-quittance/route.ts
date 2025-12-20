@@ -29,11 +29,13 @@ export async function POST(request: NextRequest) {
 
     if (type === 'email') {
       const emailBody = customBody || generateEmailBody(quittance, bailleur, locataire, appartement);
-      const fromEmail = 'onboarding@resend.dev';
+      const fromEmail = process.env.EMAIL_FROM || 'onboarding@resend.dev';
+      const replyTo = bailleur.email;
       const ccEmail = bailleur.email;
       
       console.log('📧 [EMAIL] Configuration:');
       console.log('📧 [EMAIL] De (FROM):', fromEmail);
+      console.log('📧 [EMAIL] Reply-To:', replyTo);
       console.log('📧 [EMAIL] Nom expéditeur:', bailleur.nom);
       console.log('📧 [EMAIL] À (TO):', to);
       console.log('📧 [EMAIL] CC (copie):', ccEmail);
@@ -52,6 +54,7 @@ export async function POST(request: NextRequest) {
           const emailOptions: any = {
             from: `${bailleur.nom} <${fromEmail}>`,
             to: [to],
+            reply_to: replyTo,
             subject: `Quittance de loyer - ${MOIS[quittance.mois]} ${quittance.annee}`,
             html: emailBody.replace(/\n/g, '<br>'),
           };
