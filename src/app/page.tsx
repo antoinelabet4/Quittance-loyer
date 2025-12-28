@@ -7,7 +7,7 @@ import { Dashboard } from '@/components/Dashboard';
 import { LandingPage } from '@/components/LandingPage';
 
 function HomeContent() {
-  const { user, loading, login } = useAuth();
+  const { user, loading } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
 
@@ -33,7 +33,6 @@ function HomeContent() {
             ← Retour
           </button>
           <AuthForm 
-            onAuth={login} 
             initialIsLogin={authMode === 'login'} 
           />
         </div>

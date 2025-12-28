@@ -6,13 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, EyeOff } from 'lucide-react';
+import { authClient } from '@/lib/auth-client';
+import { toast } from 'sonner';
 
 interface AuthFormProps {
-  onAuth: (email: string, userId: string) => void;
   initialIsLogin?: boolean;
 }
 
-export function AuthForm({ onAuth, initialIsLogin = true }: AuthFormProps) {
+export function AuthForm({ initialIsLogin = true }: AuthFormProps) {
   const [isLogin, setIsLogin] = useState(initialIsLogin);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,9 +21,6 @@ export function AuthForm({ onAuth, initialIsLogin = true }: AuthFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [showResetPassword, setShowResetPassword] = useState(false);
-  const [resetEmail, setResetEmail] = useState('');
-  const [resetSuccess, setResetSuccess] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,121 +28,27 @@ export function AuthForm({ onAuth, initialIsLogin = true }: AuthFormProps) {
     setLoading(true);
 
     try {
-      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
-      const body = isLogin ? { email, password } : { email, password, nom };
-
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Erreur lors de l\'authentification');
+      if (isLogin) {
+        const { error } = await authClient.signIn.email({
+          email,
+          password,
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await authClient.signUp.email({
+          email,
+          password,
+          name: nom,
+        });
+        if (error) throw error;
       }
-
-      onAuth(data.user.email, data.user.id);
-      localStorage.setItem('user', JSON.stringify(data.user));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+      toast.error('Erreur d\'authentification');
     } finally {
       setLoading(false);
     }
   };
-
-  const handlePasswordReset = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setResetSuccess('');
-    setLoading(true);
-
-    try {
-      const res = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: resetEmail }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Erreur lors de la réinitialisation');
-      }
-
-      setResetSuccess('Un email de réinitialisation a été envoyé à votre adresse.');
-      setTimeout(() => {
-        setShowResetPassword(false);
-        setResetEmail('');
-        setResetSuccess('');
-      }, 3000);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (showResetPassword) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Mot de passe oublié</CardTitle>
-            <CardDescription>
-              Entrez votre email pour réinitialiser votre mot de passe
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handlePasswordReset} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="reset-email">Email</Label>
-                <Input
-                  id="reset-email"
-                  type="email"
-                  value={resetEmail}
-                  onChange={(e) => setResetEmail(e.target.value)}
-                  placeholder="votre@email.com"
-                  required
-                />
-              </div>
-
-              {error && (
-                <div className="text-sm text-red-600 bg-red-50 p-3 rounded">
-                  {error}
-                </div>
-              )}
-
-              {resetSuccess && (
-                <div className="text-sm text-green-600 bg-green-50 p-3 rounded">
-                  {resetSuccess}
-                </div>
-              )}
-
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Envoi...' : 'Réinitialiser le mot de passe'}
-              </Button>
-
-              <div className="text-center text-sm">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowResetPassword(false);
-                    setResetEmail('');
-                    setError('');
-                  }}
-                  className="text-blue-600 hover:underline"
-                >
-                  Retour à la connexion
-                </button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -205,17 +109,6 @@ export function AuthForm({ onAuth, initialIsLogin = true }: AuthFormProps) {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              {isLogin && (
-                <div className="text-right">
-                  <button
-                    type="button"
-                    onClick={() => setShowResetPassword(true)}
-                    className="text-sm text-blue-600 hover:underline"
-                  >
-                    Mot de passe oublié ?
-                  </button>
-                </div>
-              )}
             </div>
 
             {error && (
